@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load tag %}
+{% block content %}
+<a href="/student/classroom/join">加入班級</a>
+<table>
+  <tr>
+  <th>班級名稱</th>   
+  <th>功能</th>       
+  </tr>
+{% for classroom, enroll in queryset %}
+  <tr>
+  <td>{{classroom.name}}</td>
+  <td>
+    <a href="/student/classroom/{{enroll.id}}/seat">座號</a>
+    <a href="/student/classroom/{{classroom.id}}/classmate">同學</a>
+  </td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

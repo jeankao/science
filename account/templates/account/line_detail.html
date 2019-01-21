@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %} Teachers {% endblock %}
+{% load tag %}
+{% block content %}
+{% if can_read %}
+<table class="table">
+<tr><td>時間</td><td>{{message.publication_date}}</td></tr>
+<tr><td>主旨</td> <td>{{message.title}}</td></tr>
+<tr><td>內容</td><td>{{message.content|linebreaks}}</td></tr>
+</table>
+{% else %}
+您沒有閱讀本訊息的權限
+{% endif %}
+{% endblock %}

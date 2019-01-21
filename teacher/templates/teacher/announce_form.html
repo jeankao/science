@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% load tag %}
+{% block content %}
+        <h1>公告班級：{{classroom.name}}</h1>
+         <form action="" enctype="multipart/form-data"  method="post">
+            <table class="table">
+                {{ form.as_table }}       
+            <tr><td></td><td><input id="submit" type="submit" value="送出"><td</tr>
+            </table>
+            {% csrf_token %}
+
+        </form>
+{% endblock %}
