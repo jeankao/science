@@ -14,3 +14,8 @@ class Classroom(models.Model):
     @property
     def teacher(self):
         return User.objects.get(id=self.teacher_id) 
+
+#班級助教
+class Assistant(models.Model):
+    classroom_id = models.IntegerField(default=0)
+    user_id = models.IntegerField(default=0)	        

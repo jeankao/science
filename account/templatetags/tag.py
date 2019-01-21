@@ -2,6 +2,7 @@ from django import template
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from account.models import MessagePoll
+from teacher.models import Assistant
 
 register = template.Library()
 
@@ -39,3 +40,14 @@ def read_already(message_id, user_id):
     except ObjectDoesNotExist:
         messagepoll = MessagePoll()
     return messagepoll.read            
+
+@register.filter(name='unread') 
+def unread(user_id):
+    return MessagePoll.objects.filter(reader_id=user_id, read=False).count()      
+
+@register.filter(name='assistant') 
+def assistant(user_id):
+    assistants = Assistant.objects.filter(user_id=user_id)
+    if assistants:
+      return True
+    return False    
