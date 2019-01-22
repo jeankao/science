@@ -27,10 +27,13 @@ from teacher.models import Classroom
 
 @register.filter
 def teacher_classroom(user_id, classroom_id):
-    classroom = Classroom.object.get(id=classroom_id)
+    classroom = Classroom.objects.get(id=classroom_id)
     if classroom.teacher_id == user_id:
         return True
     else:
+        assistants = Assistant.objects.filter(user_id=user_id, classroom_id=classroom_id)
+        if assistants.exist():
+            return True
         return False    
 
 @register.filter(takes_context=True)
@@ -51,3 +54,13 @@ def assistant(user_id):
     if assistants:
       return True
     return False    
+    
+@register.filter()
+def is_pic(title):   
+    if title[-3:].upper() == "PNG":
+        return True
+    if title[-3:].upper() == "JPG":
+        return True   
+    if title[-3:].upper() == "GIF":
+        return True            
+    return False

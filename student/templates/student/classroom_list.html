@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load tag %}
 {% block content %}
-<a href="/student/classroom/join">加入班級</a>
-<table>
+<a href="/student/classroom/join" role="btn" class="btn btn-primary active">加入班級</a>
+<table class="table">
   <tr>
   <th>班級名稱</th>   
   <th>功能</th>       
@@ -11,8 +11,8 @@
   <tr>
   <td>{{classroom.name}}</td>
   <td>
-    <a href="/student/classroom/{{enroll.id}}/seat">座號</a>
-    <a href="/student/classroom/{{classroom.id}}/classmate">同學</a>
+    <a href="/student/classroom/{{enroll.id}}/seat" role="btn" class="btn btn-outline-success">座號</a>
+    <a href="/student/classroom/{{classroom.id}}/classmate" role="btn" class="btn btn-outline-success">同學</a>
   </td>
   </tr>
 {% endfor %}

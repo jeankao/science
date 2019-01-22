@@ -4,6 +4,16 @@ from django.contrib.auth.models import User
 
 # 班級
 class Classroom(models.Model):
+    Lesson_CHOICES = [				
+        (1, 'Science科學運算：使用Python3'),           
+	]
+
+    LessonShort_CHOICES = [	    
+        (1, 'Science'),                   
+	]	
+
+    # 課程名稱
+    lesson = models.IntegerField(default=0, choices=Lesson_CHOICES, verbose_name='課程名稱')
     # 班級名稱
     name = models.CharField(max_length=30, verbose_name='班級名稱')
     # 選課密碼
@@ -14,6 +24,9 @@ class Classroom(models.Model):
     @property
     def teacher(self):
         return User.objects.get(id=self.teacher_id) 
+
+    def lesson_choice(self):
+        return dict(Classroom.LessonShort_CHOICES)[self.lesson]	        
 
 #班級助教
 class Assistant(models.Model):

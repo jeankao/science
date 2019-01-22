@@ -21,7 +21,7 @@ class UserRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email')
+        fields = ('username', 'first_name', 'email')
 
     def clean_password2(self):
         cd = self.cleaned_data
@@ -45,8 +45,7 @@ class UserRegistrationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(UserRegistrationForm, self).__init__(*args, **kwargs)
         self.fields['username'].label = "帳號"
-        self.fields['first_name'].label = "真實姓名"
-        self.fields['last_name'].label = "學校名稱"
+        self.fields['first_name'].label = "姓名"
         self.fields['email'].label = "電子郵件"
         self.fields['password'].label = "密碼"
         self.fields['password2'].label = "再次確認密碼"    
@@ -54,13 +53,12 @@ class UserRegistrationForm(forms.ModelForm):
 class UserUpdateForm(forms.ModelForm): 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email')
+        fields = ('username', 'first_name', 'email')
 
     def __init__(self, *args, **kwargs):
         super(UserUpdateForm, self).__init__(*args, **kwargs)
         self.fields['username'].label = "帳號"
         self.fields['first_name'].label = "真實姓名"
-        self.fields['last_name'].label = "學校名稱"
         self.fields['email'].label = "電子郵件"         
 
 class UserPasswordForm(forms.ModelForm): 

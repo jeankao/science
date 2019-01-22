@@ -6,7 +6,7 @@
 <table class="table">
 <tr><td>時間</td><td>{{message.publication_date}}</td></tr>
 <tr><td>主旨</td> <td>{{message.title}}</td></tr>
-<tr><td>內容</td><td>{{message.content|linebreaks}}</td></tr>
+<tr><td>內容</td><td>{{message.content|safe|linebreaks}}</td></tr>
 </table>
 {% else %}
 您沒有閱讀本訊息的權限

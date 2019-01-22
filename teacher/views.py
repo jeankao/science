@@ -1,6 +1,6 @@
-from django.shortcuts import render
-from teacher.models import Classroom
-from student.models import Enroll
+from django.shortcuts import render, redirect
+from teacher.models import *
+from student.models import *
 from django.views import generic
 from django.contrib.auth.models import User, Group
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
@@ -8,6 +8,14 @@ from account.models import Message, MessagePoll
 from account.forms import LineForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.http import JsonResponse
+from teacher.forms import *
+from django.core.files.storage import FileSystemStorage
+from wsgiref.util import FileWrapper
+from uuid import uuid4
+import os
 
 def filename_browser(request, filename):
 	browser = request.META['HTTP_USER_AGENT'].lower()
@@ -86,7 +94,7 @@ class ClassroomList(generic.ListView):
     
 class ClassroomCreate(CreateView):
     model =Classroom
-    fields = ["name", "password"]
+    fields = ["lesson", "name", "password"]
     success_url = "/teacher/classroom"   
     template_name = 'form.html'
       
@@ -101,42 +109,105 @@ class ClassroomCreate(CreateView):
     
 class ClassroomUpdate(UpdateView):
     model = Classroom
-    fields = ["name", "password"]
+    fields = ["lesson", "name", "password"]
     success_url = "/teacher/classroom"   
     template_name = 'form.html'
 
-#新增一個公告
-class AnnounceCreate(LoginRequiredMixin, CreateView):
+# 列出所有公告
+class AnnounceListView(ListView):
     model = Message
-    form_class = LineForm
-    success_url = '/account/dashboard'    
-    template_name = 'teacher/announce_form.html'     
+    context_object_name = 'messages'
+    template_name = 'teacher/announce_list.html'
+    paginate_by = 20
+    def dispatch(self, *args, **kwargs):
+        if not in_teacher_group(self.request.user):
+            raise PermissionDenied
+        else :
+            return super(AnnounceListView, self).dispatch(*args, **kwargs)
+    def get_queryset(self):
+        queryset = Message.objects.filter(classroom_id=self.kwargs['classroom_id'], author_id=self.request.user.id).order_by("-id")
+        return queryset
 
-    def form_valid(self, form):
-        valid = super(AnnounceCreate, self).form_valid(form)
-        self.object = form.save(commit=False)
-        classroom = Classroom.objects.get(id=self.kwargs['classroom_id'])
-        self.object.title = u"[公告]" + classroom.name + ":" + self.object.title
-        self.object.author_id = self.request.user.id
-        self.object.save()
-        # 訊息
-        enrolls = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'])
-        for enroll in enrolls :
-            messagepoll = MessagePoll(message_id=self.object.id, reader_id=enroll.student_id)
-            messagepoll.save()              
-        return valid
-      
-    # 限本班教師
-    def render_to_response(self, context):
-        teacher_id = Classroom.objects.get(id=self.kwargs['classroom_id']).teacher_id
-        if not teacher_id == self.request.user.id:
-            return redirect('/')
-        return super(AnnounceCreate, self).render_to_response(context)       
-      
     def get_context_data(self, **kwargs):
-        context = super(AnnounceCreate, self).get_context_data(**kwargs)
+        context = super(AnnounceListView, self).get_context_data(**kwargs)
         context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
-        return context	    
+        return context
+
+    # 限本班任課教師
+    def render(request, self, context):
+        if not is_teacher(self.request.user, self.kwargs['classroom_id']) and not is_assistant(self.request.user, self.kwargs['classroom_id']):
+            return redirect('/')
+        return super(AnnounceListView, self).render(request, context)
+
+#新增一個公告
+class AnnounceCreateView(CreateView):
+    model = Message
+    form_class = AnnounceForm
+    template_name = 'teacher/announce_form.html'
+    def dispatch(self, *args, **kwargs):
+        if not in_teacher_group(self.request.user):
+            raise PermissionDenied
+        else :
+            return super(AnnounceCreateView, self).dispatch(*args, **kwargs)
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.title = u"[公告]" + self.object.title
+        self.object.author_id = self.request.user.id
+        self.object.classroom_id = self.kwargs['classroom_id']
+        self.object.type = 1
+        self.object.save()
+        self.object.url = "/teacher/announce/detail/" + str(self.object.id)
+        self.object.save()
+
+        #附件
+        files = []
+        if self.request.FILES.getlist('files'):
+             for file in self.request.FILES.getlist('files'):
+                fs = FileSystemStorage()
+                filename = uuid4().hex
+                fs.save("static/attach/"+str(self.request.user.id)+"/"+filename, file)
+                files.append([filename, file.name])
+        if files:
+            for file, name in files:
+                content = MessageContent()
+                content.title = name
+                content.message_id = self.object.id
+                content.filename = str(self.request.user.id)+"/"+file
+                content.save()
+        # 班級學生訊息
+        enrolls = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'])
+        for enroll in enrolls:
+            messagepoll = MessagePoll(message_id=self.object.id, reader_id=enroll.student_id)
+            messagepoll.save()
+        return redirect("/teacher/announce/"+str(self.kwargs['classroom_id']))
+
+    def get_context_data(self, **kwargs):
+        context = super(AnnounceCreateView, self).get_context_data(**kwargs)
+        context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
+        return context
+
+
+# 公告
+def announce_detail(request, message_id):
+    message = Message.objects.get(id=message_id)
+    files = MessageContent.objects.filter(message_id=message_id)
+    classroom = Classroom.objects.get(id=message.classroom_id)
+
+    announce_reads = []
+
+    messagepolls = MessagePoll.objects.filter(message_id=message_id)
+    for messagepoll in messagepolls:
+        try:
+            enroll = Enroll.objects.get(classroom_id=message.classroom_id, student_id=messagepoll.reader_id)
+            announce_reads.append([enroll.seat, enroll.student.first_name, messagepoll])
+        except ObjectDoesNotExist:
+            pass
+
+    def getKey(custom):
+        return custom[0]
+    announce_reads = sorted(announce_reads, key=getKey)
+    return render(request, 'teacher/announce_detail.html', {'files':files,'message':message, 'classroom':classroom, 'announce_reads':announce_reads})
+
 
 # 設定班級助教
 @login_required
@@ -255,3 +326,86 @@ def assistant_make(request):
         return JsonResponse({'status':'ok'}, safe=False)
     else:
         return JsonResponse({'status':'fail'}, safe=False)        
+
+# 設定班級助教
+@login_required
+@user_passes_test(in_teacher_group, login_url='/')
+def classroom_assistant(request, classroom_id):
+    assistants = Assistant.objects.filter(classroom_id=classroom_id).order_by("-id")
+    classroom = Classroom.objects.get(id=classroom_id)
+
+    return render(request, 'teacher/assistant.html',{'assistants': assistants, 'classroom':classroom})
+
+# 教師可以查看所有帳號
+class AssistantListView(ListView):
+    context_object_name = 'users'
+    paginate_by = 20
+    template_name = 'teacher/assistant_user.html'
+    def dispatch(self, *args, **kwargs):
+        if not in_teacher_group(self.request.user):
+            raise PermissionDenied
+        else :
+            return super(AssistantListView, self).dispatch(*args, **kwargs)
+    def get_queryset(self):
+        if self.request.GET.get('account') != None:
+            keyword = self.request.GET.get('account')
+            queryset = User.objects.filter(Q(username__icontains=keyword) | Q(first_name__icontains=keyword)).order_by('-id')
+        else :
+            queryset = User.objects.all().order_by('-id')
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(AssistantListView, self).get_context_data(**kwargs)
+        context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
+        assistant_list = []
+        assistants = Assistant.objects.filter(classroom_id=self.kwargs['classroom_id'])
+        for assistant in assistants:
+            assistant_list.append(assistant.user_id)
+        context['assistants'] = assistant_list
+        return context
+
+# 列出所有助教課程
+class AssistantClassroomListView(ListView):
+    model = Classroom
+    context_object_name = 'classrooms'
+    template_name = 'teacher/assistant_list.html'
+    paginate_by = 20
+    def dispatch(self, *args, **kwargs):
+        if not in_teacher_group(self.request.user):
+            raise PermissionDenied
+        else :
+            return super(AssistantClassroomListView, self).dispatch(*args, **kwargs)
+    def get_queryset(self):
+        assistants = Assistant.objects.filter(user_id=self.request.user.id)
+        classroom_list = []
+        for assistant in assistants:
+            classroom_list.append(assistant.classroom_id)
+        queryset = Classroom.objects.filter(id__in=classroom_list).order_by("-id")
+        return queryset
+
+# Ajax 設為助教、取消助教
+def assistant_make(request):
+    classroom_id = request.POST.get('classroomid')
+    user_id = request.POST.get('userid')
+    action = request.POST.get('action')
+    if user_id and action :
+        if action == 'set':
+            try :
+                assistant = Assistant.objects.get(classroom_id=classroom_id, user_id=user_id)
+            except ObjectDoesNotExist :
+                assistant = Assistant(classroom_id=classroom_id, user_id=user_id)
+                assistant.save()
+            # 將教師設為0號學生
+            enroll = Enroll(classroom_id=classroom_id, student_id=user_id, seat=0)
+            enroll.save()
+        else :
+            try :
+                assistant = Assistant.objects.get(classroom_id=classroom_id, user_id=user_id)
+                assistant.delete()
+                enroll = Enroll.objects.filter(classroom_id=classroom_id, student_id=user_id)
+                enroll.delete()
+            except ObjectDoesNotExist :
+                pass
+        return JsonResponse({'status':'ok'}, safe=False)
+    else:
+        return JsonResponse({'status':'fail'}, safe=False)

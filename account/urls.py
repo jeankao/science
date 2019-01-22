@@ -16,4 +16,8 @@ urlpatterns = [
     path('line/classmate/<int:classroom_id>/', views.LineClassmateList.as_view()),      
     path('line/<int:user_id>/<int:classroom_id>/create/', views.LineCreate.as_view()), 
     path('line/<int:pk>/', views.LineDetail.as_view()),    
+    path('line/download/<int:file_id>/', views.line_download), 
+    path('line/showpic/<int:file_id>/', views.line_showpic),     
+    #設定教師
+    path('teacher/make/', views.make),         
 ]

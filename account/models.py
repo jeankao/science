@@ -16,8 +16,21 @@ class Message(models.Model):
 class MessagePoll(models.Model):
     message_id = models.IntegerField(default=0)
     reader_id = models.IntegerField(default=0) 
-    read = models.BooleanField(default=False)
+    read = models.BooleanField(default=False)    
     
     @property
     def message(self):
         return Message.objects.get(id=self.message_id)
+
+class MessageFile(models.Model):
+    message_id = models.IntegerField(default=0) 
+    filename = models.TextField()
+    before_name = models.TextField()
+    upload_date = models.DateTimeField(default=timezone.now)
+
+class MessageContent(models.Model):
+    message_id =  models.IntegerField(default=0)
+    user_id = models.IntegerField(default=0)
+    title =  models.CharField(max_length=250,null=True,blank=True)
+    filename = models.CharField(max_length=250,null=True,blank=True)    
+    publication_date = models.DateTimeField(default=timezone.now)

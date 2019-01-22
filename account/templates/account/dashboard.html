@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% load tag %}
 {% block content %}
-<table>
+<table class="table">
 {% for messagepoll in messagepoll_list %}
      <tr>
        <td>{{messagepoll.message.publication_date}}</td>
-       <td><a href="/account/line/{{messagepoll.message_id}}">{{messagepoll.message.title}}</a></td>
+       <td><a href="/account/line/{{messagepoll.message_id}}">{{messagepoll.message.title}}</a>
+        {% if not messagepoll.read %}
+        <img src="/static/images/new.gif">
+        {% endif %}
+        </td>
      </tr>
 {% endfor %}
 </table>

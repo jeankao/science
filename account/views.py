@@ -33,12 +33,35 @@ from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from .forms import UserRegistrationForm, UserUpdateForm, UserPasswordForm, UserTeacherForm
-from student.models import Enroll
-from account.models import Message, MessagePoll
+from student.models import *
+from account.models import *
 from account.forms import LineForm
+from django.contrib.auth.decorators import user_passes_test
+from django.http import JsonResponse
+from django.utils import timezone
+from django.utils.timezone import localtime
+from wsgiref.util import FileWrapper
+from django.http import HttpResponse
+
+def filename_browser(request, filename):
+	browser = request.META['HTTP_USER_AGENT'].lower()
+	if 'edge' in browser:
+		response['Content-Disposition'] = 'attachment; filename='+urlquote(filename)+'; filename*=UTF-8\'\'' + urlquote(filename)
+		return response			
+	elif 'webkit' in browser:
+		# Safari 3.0 and Chrome 2.0 accepts UTF-8 encoded string directly.
+		filename_header = 'filename=%s' % filename.encode('utf-8').decode('ISO-8859-1')
+	elif 'trident' in browser or 'msie' in browser:
+		# IE does not support internationalized filename at all.
+		# It can only recognize internationalized URL, so we do the trick via routing rules.
+		filename_header = 'filename='+filename.encode("BIG5").decode("ISO-8859-1")					
+	else:
+		# For others like Firefox, we follow RFC2231 (encoding extension in HTTP headers).
+		filename_header = 'filename*="utf8\'\'' + str(filename.encode('utf-8').decode('ISO-8859-1')) + '"'
+	return filename_header		
 
 class Login(FormView):
-    success_url = '/'
+    success_url = '/account/dashboard'
     form_class = AuthenticationForm
     template_name = "login.html"
 
@@ -144,10 +167,19 @@ class UserTeacher(SuperUserRequiredMixin, FormView):
         kwargs.update({'pk': self.kwargs['pk']})
         return kwargs
 
+# 超級管理員可以查看所有帳號
 class UserList(SuperUserRequiredMixin, generic.ListView):
-    model = User
-    ordering = ['-id']
-    paginate_by = 3 
+    context_object_name = 'users'
+    paginate_by = 20
+    template_name = 'account/user_list.html'
+
+    def get_queryset(self):
+        queryset = User.objects.all().order_by('-id')
+        return queryset
+                        
+    def get_context_data(self, **kwargs):
+        context = super(UserList, self).get_context_data(**kwargs)
+        return context			
 
 # 判斷是否為本班同學
 def is_classmate(user_id, classroom_id):
@@ -165,7 +197,7 @@ def line_can_read(message_id, user_id):
 # 訊息(儀表板)
 class LineList(LoginRequiredMixin, generic.ListView):
     model = MessagePoll
-    paginate_by = 3
+    paginate_by = 10
     template_name = 'account/dashboard.html'
         
     def get_queryset(self, **kwargs):
@@ -235,3 +267,59 @@ class LineDetail(generic.DetailView):
             pass
         context['can_read'] = line_can_read(self.kwargs['pk'], self.request.user.id)      
         return context
+
+# 下載檔案
+def line_download(request, file_id):
+    content = MessageContent.objects.get(id=file_id)
+    filename = content.title
+    download =  settings.BASE_DIR + "/static/attach/" + content.filename
+    wrapper = FileWrapper(open( download, "rb"))
+    response = HttpResponse(wrapper, content_type = 'application/force-download')
+    #response = HttpResponse(content_type='application/force-download')
+    response['Content-Disposition'] = 'attachment; {0}'.format(filename_browser(request, filename))
+    # It's usually a good idea to set the 'Content-Length' header too.
+    # You can also set any other required headers: Cache-Control, etc.
+    return response
+	
+# 顯示圖片
+def line_showpic(request, file_id):
+        content = MessageContent.objects.get(id=file_id)
+        return render(request, 'student/forum_showpic.html', {'content':content})
+
+# Ajax 設為教師、取消教師
+@user_passes_test(lambda u: u.is_superuser)
+def make(request):
+    user_id = request.POST.get('userid')
+    action = request.POST.get('action')
+    if user_id and action :
+        user = User.objects.get(id=user_id)           
+        try :
+            group = Group.objects.get(name="teacher")	
+        except ObjectDoesNotExist :
+            group = Group(name="teacher")
+            group.save()
+        if action == 'set':                                  
+            group.user_set.add(user)
+            # create Message
+            title = "<" + request.user.first_name + u">設您為教師"
+            url = "/teacher/classroom"
+            message = Message(title=title, url=url, publication_date=timezone.now())
+            message.save()                        
+                    
+            # message for group member
+            messagepoll = MessagePoll(message_id = message.id,reader_id=user_id)
+            messagepoll.save()    
+        else :   
+            group.user_set.remove(user)  
+            # create Message
+            title = "<"+ request.user.first_name + u">取消您為教師"
+            url = "/"
+            message = Message(title=title, url=url, publication_date=timezone.now())
+            message.save()                        
+                    
+            # message for group member
+            messagepoll = MessagePoll(message_id = message.id,reader_id=user_id)
+            messagepoll.save()               
+        return JsonResponse({'status':'ok'}, safe=False)
+    else:
+        return JsonResponse({'status':'no'}, safe=False)    
