@@ -3,6 +3,10 @@ from django.contrib.auth.models import User, Group
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from account.models import MessagePoll
 from teacher.models import Assistant
+import re
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.formatters import HtmlFormatter
 
 register = template.Library()
 
@@ -64,3 +68,21 @@ def is_pic(title):
     if title[-3:].upper() == "GIF":
         return True            
     return False
+
+@register.filter
+def code_highlight(code):  
+    html_code = highlight(code, PythonLexer(), HtmlFormatter(linenos=True))
+    return html_code
+
+@register.filter
+def get_at_index(list, index):
+    return list.index(index)+1
+
+@register.filter()
+def list_item(list, index):
+    return list[index]    
+
+@register.filter()
+def memo(text):
+  memo = re.sub(r"\n", r"<br/>", re.sub(r"\[m_(\d+)#(\d\d:\d\d:\d\d)\]", r"<button class='btn btn-default btn-xs btn-marker' data-mid='\1' data-time='\2'><span class='badge'>\1</span> \2</button>",text))
+  return memo    

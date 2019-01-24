@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<!--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+<section class="wrapper">
+    <ul class="nav nav-pills" id="myTab" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#tab1" role="tab" aria-selected="true">現象描述</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#tab21" role="tab" aria-selected="true">資料建模</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#tab22" role="tab" aria-selected="true">流程建模</a>
+      </li>    
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#tab3" role="tab" aria-selected="false">程式化</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#tab4" role="tab" aria-selected="false">觀察與除錯</a>
+      </li>
+    </ul>
+    <br/>
+    <div class="tab-content" id="myTabContent">
+      <div class="tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="home-tab">
+      <ul class="nav nav-pills" id="myTab2" role="tablist">
+      {% for question in questions %}
+      <li class="nav-item">
+        <a class="nav-link{% if forloop.counter == 1 %} active{% endif %}" data-toggle="tab" href="#question{{forloop.counter}}" role="tab" aria-selected="true">{{forloop.counter}}</a>
+      </li>
+      {% endfor %}
+      </ul>	
+      <div class="tab-content" id="myTabContentQ">
+      {% for question in questions %}
+      <div class="tab-pane fade {% if forloop.counter == 1 %}show active {% endif %}" id="question{{forloop.counter}}" role="tabpanel" aria-labelledby="home-tab">
+      {% include "student/submitF1.html" with question=question q_index=forloop.counter %}
+      </div>
+      {% endfor %}
+      </div>
+      </div>
+      <div class="tab-pane fade" id="tab21" role="tabpanel" aria-labelledby="tab2-tab">
+      {% include "student/submitF21.html" %}
+      </div>
+      <div class="tab-pane fade" id="tab22" role="tabpanel" aria-labelledby="tab3-tab">
+      {% include "student/submitF22.html" %}
+      </div>
+      <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab4-tab">
+      {% include "student/submitF3.html" %}
+      </div>
+      <div class="tab-pane fade" id="tab4" role="tabpanel" aria-labelledby="tab5-tab">
+      {% include "student/submitF4.html" %}
+      </div> 
+    </div>
+  </section>
+{% endblock %}
+
+{% block header %}
+<!-- jQuery UI -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+<script>
+$(function(){
+  var hash = window.location.hash;
+  hash && $('ul.nav a[href="' + hash + '"]').tab('show');
+  $('.nav-tabs a').click(function (e) {
+    $(this).tab('show');
+    var scrollmem = $('body').scrollTop();
+    window.location.hash = this.hash;
+    $('html,body').scrollTop(scrollmem);
+  });
+});
+</script>  
+{% endblock %}
+
+{% block domready %}
+  $('.select').click(function(e){
+    $("#select_model").show();
+  });
+  $('#add').click(function(e){
+      $("#block").append("<button type='button' class='btn btn-success' data-toggle='modal' data-target='#myModa2'>?</button>");
+  });
+{% endblock %}

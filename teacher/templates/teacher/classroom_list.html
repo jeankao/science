@@ -16,7 +16,8 @@
     <a href="/teacher/classroom/{{classroom.id}}/update" role="button" class="btn btn-outline-success">修改</a>
     <a href="/student/classroom/{{classroom.id}}/classmate" role="button" class="btn btn-outline-success">學生</a>
     <a href="/teacher/classroom/assistant/{{classroom.id}}" role="button" class="btn btn-outline-success">助教</a>     
-    <a href="/teacher/announce/{{classroom.id}}" role="button" class="btn btn-success">公告</a>       
+    <a href="/teacher/announce/{{classroom.id}}" role="button" class="btn btn-outline-success">公告</a> 
+    <a href="/teacher/work/{{classroom.lesson}}/{{classroom.id}}" role="button" class="btn btn-outline-success">作業</a>              
   </td>
   </tr>
 {% endfor %}

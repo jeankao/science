@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+       <a href="/teacher/work/question/add/{{classroom.lesson}}/{{classroom.id}}/{{work_id}}" role="button" class="btn btn-primary active">新增問題</a>
+       <table class="table">
+		{% for question in questions %}
+            <tr>
+            <td width=30><button class="btn btn-success">{{forloop.revcounter}}</button></td>
+            <td><a href="/teacher/work/question/update/{{question.id}}/{{classroom.lesson}}/{{classroom.id}}/{{work_id}}/">{{question.question|safe|linebreaks}}</a></td>			
+            </tr>
+		{% endfor %}
+        </table>		
+{% endblock %}

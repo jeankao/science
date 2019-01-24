@@ -1,6 +1,8 @@
 # -*- coding: UTF-8 -*-
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import datetime, timedelta
 
 # 班級
 class Classroom(models.Model):
@@ -32,3 +34,9 @@ class Classroom(models.Model):
 class Assistant(models.Model):
     classroom_id = models.IntegerField(default=0)
     user_id = models.IntegerField(default=0)	        
+
+#自訂作業
+class TWork(models.Model):
+    title = models.CharField(max_length=250)	
+    classroom_id = models.IntegerField(default=0)
+    time = models.DateTimeField(default=timezone.now)    

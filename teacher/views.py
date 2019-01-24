@@ -409,3 +409,110 @@ def assistant_make(request):
         return JsonResponse({'status':'ok'}, safe=False)
     else:
         return JsonResponse({'status':'fail'}, safe=False)
+
+# 列出所有課程
+class WorkList(ListView):
+    model = TWork
+    context_object_name = 'works'
+    template_name = 'teacher/work_list.html'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = TWork.objects.filter(classroom_id=self.kwargs['classroom_id']).order_by("-id")
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(WorkList, self).get_context_data(**kwargs)
+        context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
+        context['lesson'] = self.kwargs['lesson']
+        return context
+
+#新增一個作業
+class WorkCreate(CreateView):
+    model = TWork
+    form_class = WorkForm
+    template_name = 'form.html'
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.teacher_id = self.request.user.id
+        self.object.classroom_id = self.kwargs['classroom_id']
+        self.object.save()
+        return redirect("/teacher/work/"+str(self.kwargs['lesson'])+"/"+str(self.kwargs['classroom_id']))
+
+# 修改作業標題
+class WorkUpdate(UpdateView):
+    model = TWork
+    fields = ['title']        # 指定要顯示的欄位
+    template_name = 'form.html' # 要使用的頁面範本        
+
+    # 成功新增選項後要導向其所屬的投票主題檢視頁面
+    def get_success_url(self):
+        return '/teacher/work/'+str(self.kwargs['lesson'])+"/"+str(self.kwargs['classroom_id'])
+
+# 科學運算現象描述問題
+class Science1QuestionList(ListView):
+    model = Science1Question
+    context_object_name = 'questions'
+    template_name = 'teacher/question_list.html'
+
+    def get_queryset(self):
+        queryset = Science1Question.objects.filter(work_id=self.kwargs['work_id']).order_by("-id")
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(Science1QuestionList, self).get_context_data(**kwargs)
+        context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
+        context['lesson'] = self.kwargs['lesson']
+        context['work_id'] = self.kwargs['work_id']		
+        return context
+		
+# 科學運算現象描述問題
+class Science1QuestionAnswer(ListView):
+    model = Science1Work
+    context_object_name = 'works'
+    template_name = 'teacher/question_answer.html'
+
+    def get_queryset(self):
+        enroll_pool = [enroll for enroll in Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'], seat__gt=0).order_by('seat')]
+        student_ids = map(lambda a: a.student_id, enroll_pool)
+        work_pool = Science1Work.objects.filter(student_id__in=student_ids, question_id=self.kwargs['q_id'])
+        work_ids = map(lambda a: a.id, work_pool)
+        content_pool = Science1Content.objects.filter(work_id__in=work_ids)
+        queryset = []
+        for enroll in enroll_pool:
+            works = filter(lambda w: w.student_id==enroll.student_id, work_pool)
+            if works:
+                contents = filter(lambda w: w.work_id==works[0].id, content_pool)
+            else :
+                contents = []
+            queryset.append([enroll, contents])
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(Science1QuestionAnswer, self).get_context_data(**kwargs)
+        context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
+        context['lesson'] = self.kwargs['lesson']
+        context['work_id'] = self.kwargs['work_id']
+        context['question'] = Science1Question.objects.get(id=self.kwargs['q_id'])		
+        return context		
+
+#新增一個問題
+class Science1QuestionCreate(CreateView):
+    model = Science1Question
+    form_class = QuestionForm
+    template_name = 'form.html'
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.work_id = self.kwargs['work_id']
+        self.object.save()
+        return redirect("/teacher/work/question/"+str(self.kwargs['lesson'])+"/"+str(self.kwargs['classroom_id'])+"/"+str(self.kwargs['work_id']))
+
+# 修改問題
+class Science1QuestionUpdate(UpdateView):
+    model = Science1Question
+    fields = ['question']        # 指定要顯示的欄位
+    template_name = 'form.html' # 要使用的頁面範本        
+
+    # 成功新增選項後要導向其所屬的投票主題檢視頁面
+    def get_success_url(self):
+        return "/teacher/work/question/"+str(self.kwargs['lesson'])+"/"+str(self.kwargs['classroom_id'])+"/"+str(self.kwargs['work_id'])
