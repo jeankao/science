@@ -545,8 +545,8 @@ $(function () {
     }
   }
 
-  function genericQSwitch(titleID, switchID, formID, curr_qid, qid) {
-    $(titleID).text(assignment['qData'][qid]);
+  function genericQSwitch(titleID, titleKey, switchID, formID, curr_qid, qid) {
+    $(titleID).text(assignment[titleKey][qid]);
     $($(switchID+' .btn').get(curr_qid)).removeClass('btn-primary').addClass('btn-light');
     $($(switchID+' .btn').get(qid)).removeClass('btn-light').addClass('btn-primary');
     $(formID + ' input[name="qid"]').val(qid+1);
@@ -561,7 +561,7 @@ $(function () {
     if (qid === curr_qid)
       return;
     resetExpressionEditor();
-    genericQSwitch('#data-qTitle', '#qData-switch', '#expr-form', curr_qid, qid);
+    genericQSwitch('#data-qTitle', 'qData', '#qData-switch', '#expr-form', curr_qid, qid);
     initExprElements();
   }
 
@@ -570,7 +570,7 @@ $(function () {
     if (qid === curr_qid)
       return;
     $('#flow-list').empty();
-    genericQSwitch('#flow-qTitle', '#qFlow-switch', '#flow-form', curr_qid, qid);
+    genericQSwitch('#flow-qTitle', 'qFlow', '#qFlow-switch', '#flow-form', curr_qid, qid);
     initFlowElements();
   }
 
