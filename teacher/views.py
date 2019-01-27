@@ -21,18 +21,18 @@ def filename_browser(request, filename):
 	browser = request.META['HTTP_USER_AGENT'].lower()
 	if 'edge' in browser:
 		response['Content-Disposition'] = 'attachment; filename='+urlquote(filename)+'; filename*=UTF-8\'\'' + urlquote(filename)
-		return response			
+		return response
 	elif 'webkit' in browser:
 		# Safari 3.0 and Chrome 2.0 accepts UTF-8 encoded string directly.
 		filename_header = 'filename=%s' % filename.encode('utf-8').decode('ISO-8859-1')
 	elif 'trident' in browser or 'msie' in browser:
 		# IE does not support internationalized filename at all.
 		# It can only recognize internationalized URL, so we do the trick via routing rules.
-		filename_header = 'filename='+filename.encode("BIG5").decode("ISO-8859-1")					
+		filename_header = 'filename='+filename.encode("BIG5").decode("ISO-8859-1")
 	else:
 		# For others like Firefox, we follow RFC2231 (encoding extension in HTTP headers).
 		filename_header = 'filename*="utf8\'\'' + str(filename.encode('utf-8').decode('ISO-8859-1')) + '"'
-	return filename_header		
+	return filename_header
 
 # 判斷是否為同班同學
 def is_classmate(user, classroom_id):
@@ -41,7 +41,7 @@ def is_classmate(user, classroom_id):
     if user.id in student_ids:
         return True
     else:
-        return False	
+        return False
 
 # 判斷是否為授課教師
 def is_teacher(user, classroom_id):
@@ -56,61 +56,61 @@ def in_teacher_group(user):
         if not Assistant.objects.filter(user_id=user.id).exists():
             return False
     return True
-	
-	
-class ClassroomTeacherRequiredMixin(object):	
+
+
+class ClassroomTeacherRequiredMixin(object):
     def dispatch(self, request, *args, **kwargs):
         if 'classroom_id' in kwargs:
             classroom_id = self.kwargs['classroom_id']
         else:
             classroom_id = self.kwargs['pk']
         user = self.request.user
-        jsonDec = json.decoder.JSONDecoder()	
+        jsonDec = json.decoder.JSONDecoder()
         classroom_list = []
         profile = Profile.objects.get(user=user)
-        if len(profile.classroom) > 0 :		
+        if len(profile.classroom) > 0 :
             classroom_list = jsonDec.decode(profile.classroom)
         if str(classroom_id) in classroom_list:
             if not user.groups.filter(name='teacher').exists():
-                if not Assistant.objects.filter(user_id=user.id).exists():		
+                if not Assistant.objects.filter(user_id=user.id).exists():
                     return redirect("/")
             return super(ClassroomTeacherRequiredMixin, self).dispatch(request,*args, **kwargs)
         else :
             return redirect('/')
-			
+
 class TeacherRequiredMixin(object):
     def dispatch(self, request, *args, **kwargs):
         user = self.request.user
         if not user.groups.filter(name='teacher').exists():
-            if not Assistant.objects.filter(user_id=user.id).exists():		
+            if not Assistant.objects.filter(user_id=user.id).exists():
                 return redirect("/")
         return super(TeacherRequiredMixin, self).dispatch(request,
-            *args, **kwargs)	
+            *args, **kwargs)
 
 class ClassroomList(generic.ListView):
     model = Classroom
     ordering = ['-id']
-    paginate_by = 3   
-    
+    paginate_by = 3
+
 class ClassroomCreate(CreateView):
     model =Classroom
     fields = ["lesson", "name", "password"]
-    success_url = "/teacher/classroom"   
+    success_url = "/teacher/classroom"
     template_name = 'form.html'
-      
+
     def form_valid(self, form):
         valid = super(ClassroomCreate, self).form_valid(form)
         classroom = form.save(commit=False)
         classroom.teacher_id = self.request.user.id
-        classroom.save() 
+        classroom.save()
         enroll = Enroll(classroom_id=classroom.id, student_id=classroom.teacher_id, seat=0)
         enroll.save()
         return valid
-    
+
 class ClassroomUpdate(UpdateView):
     model = Classroom
     fields = ["lesson", "name", "password"]
-    success_url = "/teacher/classroom"   
+    success_url = "/teacher/classroom"
     template_name = 'form.html'
 
 # 列出所有公告
@@ -214,7 +214,7 @@ def announce_detail(request, message_id):
 def classroom_assistant(request, classroom_id):
     if not is_teacher(request.user, classroom_id):
         return redirect("/")
-		
+
     assistants = Assistant.objects.filter(classroom_id=classroom_id).order_by("-id")
     classroom = Classroom.objects.get(id=classroom_id)
 
@@ -232,7 +232,7 @@ class AssistantListView(ClassroomTeacherRequiredMixin, ListView):
             if self.kwargs['group'] == 1:
                 queryset = User.objects.filter(Q(groups__name='apply') & (Q(username__icontains=keyword) | Q(first_name__icontains=keyword))).order_by("-id")
             else :
-                queryset = User.objects.filter(Q(username__icontains=keyword) | Q(first_name__icontains=keyword)).order_by('-id')		
+                queryset = User.objects.filter(Q(username__icontains=keyword) | Q(first_name__icontains=keyword)).order_by('-id')
         else :
             if self.kwargs['group'] == 1:
                 queryset = User.objects.filter(groups__name='apply').order_by("-id")
@@ -270,7 +270,7 @@ class AssistantClassroomListView(TeacherRequiredMixin, ListView):
 def assistant_make(request):
     if not in_teacher_group(request.user):
         return JsonResponse({'status':'fail'}, safe=False)
-		
+
     classroom_id = request.POST.get('classroomid')
     user_id = request.POST.get('userid')
     action = request.POST.get('action')
@@ -288,19 +288,19 @@ def assistant_make(request):
                 enroll = Enroll(classroom_id=classroom_id, student_id=user_id, seat=0)
                 enroll.save()
             try :
-                group = Group.objects.get(name="class"+classroom_id)	
+                group = Group.objects.get(name="class"+classroom_id)
             except ObjectDoesNotExist :
                 group = Group(name="class"+classroom_id)
-                group.save()     
-            group.user_set.add(request.user)	
-            jsonDec = json.decoder.JSONDecoder()	
+                group.save()
+            group.user_set.add(request.user)
+            jsonDec = json.decoder.JSONDecoder()
             classroom_list = []
             profile = Profile.objects.get(user=user)
-            if len(profile.classroom) > 0 :		
+            if len(profile.classroom) > 0 :
                 classroom_list = jsonDec.decode(profile.classroom)
             classroom_list.append(str(classroom_id))
             profile.classroom = json.dumps(classroom_list)
-            profile.save()	
+            profile.save()
         else :
             try :
                 assistant = Assistant.objects.get(classroom_id=classroom_id, user_id=user_id)
@@ -310,22 +310,22 @@ def assistant_make(request):
             except ObjectDoesNotExist :
                 pass
             try :
-                group = Group.objects.get(name="class"+classroom_id)	
+                group = Group.objects.get(name="class"+classroom_id)
             except ObjectDoesNotExist :
                 group = Group(name="class"+classroom_id)
-                group.save()     
+                group.save()
             group.user_set.remove(request.user)
-            jsonDec = json.decoder.JSONDecoder()	
+            jsonDec = json.decoder.JSONDecoder()
             classroom_list = []
             profile = Profile.objects.get(user=user)
-            if len(profile.classroom) > 0 :		
+            if len(profile.classroom) > 0 :
                 classroom_list = jsonDec.decode(profile.classroom)
                 classroom_list.remove(str(classroom_id))
             profile.classroom = json.dumps(classroom_list)
-            profile.save()				
+            profile.save()
         return JsonResponse({'status':'ok'}, safe=False)
     else:
-        return JsonResponse({'status':'fail'}, safe=False)        
+        return JsonResponse({'status':'fail'}, safe=False)
 
 # 設定班級助教
 @login_required
@@ -428,12 +428,27 @@ class WorkList(ListView):
         return context
 
 #新增一個作業
+qType = [
+    {'type': 'qStatus', 'label': '現象問題'}, 
+    {'type': 'qData', 'label': '資料建模問題'}, 
+    {'type': 'qFlow', 'label': '流程建模問題'},
+]
+
 class WorkCreate(CreateView):
     model = TWork
-    form_class = WorkForm
-    template_name = 'form.html'
+    #form_class = WorkForm
+    fields = ['title']        # 指定要顯示的欄位
+    template_name = 'teacher/assignment_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["qType"] = qType
+        return context
+
     def form_valid(self, form):
+        testf = self.request.POST
         self.object = form.save(commit=False)
+        self.object.description = dict({'testf': testf})
         self.object.teacher_id = self.request.user.id
         self.object.classroom_id = self.kwargs['classroom_id']
         self.object.save()
@@ -443,7 +458,18 @@ class WorkCreate(CreateView):
 class WorkUpdate(UpdateView):
     model = TWork
     fields = ['title']        # 指定要顯示的欄位
-    template_name = 'form.html' # 要使用的頁面範本        
+    template_name = 'teacher/assignment_form.html' # 要使用的頁面範本
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["qType"] = qType
+        return context
+    
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.description = {'qStatus': self.request.POST.getlist('qStatus'), 'qData': self.request.POST.getlist('qData'), 'qFlow': self.request.POST.getlist('qFlow')}
+        self.object.save()
+        return redirect('/teacher/work/'+str(self.kwargs['lesson'])+"/"+str(self.kwargs['classroom_id']))
 
     # 成功新增選項後要導向其所屬的投票主題檢視頁面
     def get_success_url(self):
@@ -463,9 +489,9 @@ class Science1QuestionList(ListView):
         context = super(Science1QuestionList, self).get_context_data(**kwargs)
         context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
         context['lesson'] = self.kwargs['lesson']
-        context['work_id'] = self.kwargs['work_id']		
+        context['work_id'] = self.kwargs['work_id']
         return context
-		
+
 # 科學運算現象描述問題
 class Science1QuestionAnswer(ListView):
     model = Science1Work
@@ -493,8 +519,8 @@ class Science1QuestionAnswer(ListView):
         context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
         context['lesson'] = self.kwargs['lesson']
         context['work_id'] = self.kwargs['work_id']
-        context['question'] = Science1Question.objects.get(id=self.kwargs['q_id'])		
-        return context		
+        context['question'] = Science1Question.objects.get(id=self.kwargs['q_id'])
+        return context
 
 #新增一個問題
 class Science1QuestionCreate(CreateView):
@@ -511,7 +537,7 @@ class Science1QuestionCreate(CreateView):
 class Science1QuestionUpdate(UpdateView):
     model = Science1Question
     fields = ['question']        # 指定要顯示的欄位
-    template_name = 'form.html' # 要使用的頁面範本        
+    template_name = 'form.html' # 要使用的頁面範本
 
     # 成功新增選項後要導向其所屬的投票主題檢視頁面
     def get_success_url(self):

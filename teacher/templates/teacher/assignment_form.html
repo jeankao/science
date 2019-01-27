@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load tag %}
+{% block content %}
+<form action="" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <table class="table">
+    {{ form.as_table }}
+    {% for qtype in qType %}
+    <tr id="{{ qtype.type }}">
+      <th><label>{{ qtype.label }}</label> <button class="btn btn-sm btn-light q-add">+</button></th>
+      <td>
+        {% for q in object.description|list_item:qtype.type %}
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text">{{ forloop.counter }}</span>
+          </div>
+          <input type="text" name="{{ qtype.type }}" value="{{ q }}" />
+        </div>
+        {% empty %}
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text">1</span>
+          </div>
+          <input type="text" name="{{ qtype.type }}" />
+        </div>
+        {% endfor %}
+      </td>
+    </tr>    
+    {% endfor %}
+    <tr>
+      <td></td>
+      <td><input type="submit" value="送出" class="btn btn-primary" /></td>
+    </tr>
+  </table>
+</form>
+{% endblock %}
+
+{% block footer_script %}
+<script src="/static/scripts/teacher-assignment.js"></script>
+{% endblock %}

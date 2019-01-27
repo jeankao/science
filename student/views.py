@@ -15,45 +15,45 @@ from binascii import a2b_base64
 import os
 class ClassroomList(generic.ListView):
     model = Classroom
-    paginate_by = 3   
+    paginate_by = 3
     template_name = 'student/classroom_list.html'
-       
+
     def get_context_data(self, **kwargs):
         context = super(ClassroomList, self).get_context_data(**kwargs)
         queryset = []
         enrolls = Enroll.objects.filter(student_id=self.request.user.id)
-        classroom_ids = list(map(lambda a: a.classroom_id, enrolls))        
+        classroom_ids = list(map(lambda a: a.classroom_id, enrolls))
         classroom_dict = dict((f.classroom_id, f) for f in enrolls)
         classrooms = Classroom.objects.filter(id__in=classroom_ids)
         for classroom in classrooms:
             queryset.append([classroom, classroom_dict[classroom.id]])
-        context['queryset'] = queryset 
-        return context 
+        context['queryset'] = queryset
+        return context
 
 class ClassroomJoinList(generic.ListView):
     model = Classroom
-    template_name = 'student/classroom_join.html'    
-    
+    template_name = 'student/classroom_join.html'
+
     def get_context_data(self, **kwargs):
         context = super(ClassroomJoinList, self).get_context_data(**kwargs)
         queryset = []
         enrolls = Enroll.objects.filter(student_id=self.request.user.id)
-        classroom_ids = list(map(lambda a: a.classroom_id, enrolls))        
+        classroom_ids = list(map(lambda a: a.classroom_id, enrolls))
         classrooms = Classroom.objects.all().order_by("-id")
         for classroom in classrooms:
             if classroom.id in classroom_ids:
                 queryset.append([classroom, True])
             else:
                 queryset.append([classroom, False])
-        context['queryset'] = queryset 
-        return context 
+        context['queryset'] = queryset
+        return context
 
 class ClassroomEnrollCreate(CreateView):
     model = Enroll
-    form_class = EnrollForm    
-    success_url = "/student/classroom"  
+    form_class = EnrollForm
+    success_url = "/student/classroom"
     template_name = "form.html"
-    
+
     def form_valid(self, form):
         valid = super(ClassroomEnrollCreate, self).form_valid(form)
         if form.cleaned_data['password'] == Classroom.objects.get(id=self.kwargs['pk']).password:
@@ -64,17 +64,17 @@ class ClassroomEnrollCreate(CreateView):
         return valid
 
 class ClassmateList(generic.ListView):
-    model = Enroll   
+    model = Enroll
     template_name = 'student/classmate.html'
-    
+
     def get_queryset(self):
         enrolls = Enroll.objects.filter(classroom_id=self.kwargs['pk'])
-        return enrolls    
-      
+        return enrolls
+
 class ClassroomSeatUpdate(UpdateView):
     model = Enroll
     fields = ['seat']
-    success_url = "/student/classroom/"      
+    success_url = "/student/classroom/"
     template_name = "form.html"
 
 
@@ -98,22 +98,20 @@ def work_list(request, typing, lesson, classroom_id):
         if not index in work_dict:
             lessons.append([assignment, None])
         else:
-           lessons.append([assignment, work_dict[index]])
+            lessons.append([assignment, work_dict[index]])
     return render(request, 'student/work_list.html', {'typing':typing, 'lesson':lesson, 'lessons':lessons, 'classroom':classroom})
 
 def submit(request, typing, lesson, index):
     work_dict = {}
     form = None
     work_dict = dict(((int(work.index), [work, WorkFile.objects.filter(work_id=work.id).order_by("-id")]) for work in Work.objects.filter(typing=typing, lesson_id=lesson, user_id=request.user.id)))
-
-    lesson_name = TWork.objects.get(id=index).title
+    assignment = TWork.objects.get(id=index)
 
     if lesson == 1:
         if request.method == 'POST':
             if typing == 1:
                 types = request.POST.get('types')
-                q_index = request.POST.get('q_index')
-                question_id = request.POST.get('question_id')
+                question_id = request.POST.get('q_index')
                 if types == "11" or types == "12":
                     form = SubmitF1Form(request.POST, request.FILES)
                     if form.is_valid():
@@ -136,12 +134,13 @@ def submit(request, typing, lesson, index):
                             fs.save(filename, myfile)
                         obj.pic = ""
                         obj.save()
-                        return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#question"+str(q_index))
+                        return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))
                 elif types in ["21", "22"]: # 資料建模, 流程建模
                     form = SubmitF2Form(request.POST)
-                    model_type = int(types == 22)
+                    model_type = int(types == "22")
                     if form.is_valid():
                         jsonid = request.POST['jsonid']
+                        qid = request.POST['qid']
                         if jsonid:
                             try:
                                 json = Science2Json.objects.get(id=jsonid)
@@ -151,6 +150,7 @@ def submit(request, typing, lesson, index):
                             json = Science2Json(index=index, student_id=request.user.id, model_type=model_type)
 
                         json.json = request.POST['jsonstr']
+                        json.data['q'+qid] = request.POST['jsonstr']
                         json.save()
                         return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab"+types)
                     return redirect('/')
@@ -158,7 +158,7 @@ def submit(request, typing, lesson, index):
                     form = SubmitF3Form(request.POST, request.FILES)
                     if form.is_valid():
                         work = Science3Work(index=index, student_id=request.user.id)
-                        work.save()                        
+                        work.save()
 
                         dataURI = form.cleaned_data['screenshot']
                         try:
@@ -206,9 +206,9 @@ def submit(request, typing, lesson, index):
         else:
             contents1 = [[]]
             works_pool = Science1Work.objects.filter(student_id=request.user.id, index=index).order_by("-id")
-            questions = Science1Question.objects.filter(work_id=index)
-            for question in questions:
-                works = list(filter(lambda w: w.question_id==question.id, works_pool))
+            questions = assignment.description['qStatus']
+            for qid in range(1, len(questions)+1):
+                works = list(filter(lambda w: w.question_id==qid, works_pool))
                 if len(works) > 0:
                     contents = Science1Content.objects.filter(work_id=works[0].id).order_by("id")
                     if len(contents)>0:
@@ -217,8 +217,8 @@ def submit(request, typing, lesson, index):
                         contents1.append([[]])
                 else:
                     contents1.append([[]])
-            works3 = Science3Work.objects.filter(student_id=request.user.id, index=index).order_by("id")  
-            work3_ids = [work.id for work in works3]            
+            works3 = Science3Work.objects.filter(student_id=request.user.id, index=index).order_by("id")
+            work3_ids = [work.id for work in works3]
             if works3.exists():
                 work3 = works3[0]
             else :
@@ -230,7 +230,7 @@ def submit(request, typing, lesson, index):
             except MultipleObjectsReturned:
                 works4 = Science4Work.objects.filter(student_id=request.user.id, index=index).order_by("-id")
                 work4 = works[0]
-            contents4 = Science4Debug.objects.filter(work3_id__in=work3_ids).order_by("-id")                
+            contents4 = Science4Debug.objects.filter(work3_id__in=work3_ids).order_by("-id")
             try:
                 expr = Science2Json.objects.get(student_id=request.user.id, index=index, model_type=0)
             except ObjectDoesNotExist:
@@ -240,9 +240,9 @@ def submit(request, typing, lesson, index):
             except ObjectDoesNotExist:
                 flow = Science2Json(student_id=request.user.id, index=index, model_type=1, json='[]')
             questions = Science1Question.objects.filter(work_id=index)
-            return render(request, 'student/submit.html', {'form':form, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow})
+            return render(request, 'student/submit.html', {'form':form, 'assignment': assignment, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow})
 
-    return render(request, 'student/submit.html', {'form':form, 'typing':typing, 'lesson': lesson, 'lesson_id':lesson, 'index':index, 'work_dict':work_dict})
+    return render(request, 'student/submit.html', {'form':form, 'assignment': assignment, 'typing':typing, 'lesson': lesson, 'lesson_id':lesson, 'index':index, 'work_dict':work_dict})
 
 
 def content_delete(request, types, typing, lesson, index, content_id):
