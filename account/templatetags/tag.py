@@ -80,7 +80,12 @@ def get_at_index(list, index):
 
 @register.filter()
 def list_item(list, index):
-    return list[index]    
+    try:
+        return list[index]
+    except TypeError:
+        return None
+    except KeyError:
+        return None    
 
 @register.filter()
 def memo(text):
