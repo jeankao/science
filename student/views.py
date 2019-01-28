@@ -288,6 +288,9 @@ def content_edit(request, types, typing, lesson, index, content_id):
             obj.save()
         except ObjectDoesNotExist:
             pass
+        # 記錄事件
+        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+question_id+'>修改文字')
+        log.save()               
         return redirect("/student/work/submit/1/"+str(lesson)+"/"+str(index)+"/#tab1")
     else:
         instance = Science1Content.objects.get(id=content_id)
@@ -298,4 +301,12 @@ def content_delete(request, types, typing, lesson, index, content_id):
     instance = Science1Content.objects.get(id=content_id)
     instance.deleted = True
     instance.save()
+    if types == 11:
+        # 記錄事件
+        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+question_id+'>刪除文字')
+        log.save() 
+    else:
+        # 記錄事件
+        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+question_id+'>刪除圖片')
+        log.save()     
     return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab1")
