@@ -290,7 +290,7 @@ def content_edit(request, types, typing, lesson, index, content_id):
         except ObjectDoesNotExist:
             pass
         # 記錄事件
-        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+request['question_id']+'>修改文字')
+        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+request.POST['question_id']+'>修改文字')
         log.save()               
         return redirect("/student/work/submit/1/"+str(lesson)+"/"+str(index)+"/#tab1")
     else:
