@@ -448,7 +448,7 @@ class WorkCreate(CreateView):
     def form_valid(self, form):
         testf = self.request.POST
         self.object = form.save(commit=False)
-        self.object.description = dict({'testf': testf})
+        self.object.description = {'qStatus': self.request.POST.getlist('qStatus'), 'qData': self.request.POST.getlist('qData'), 'qFlow': self.request.POST.getlist('qFlow')}
         self.object.teacher_id = self.request.user.id
         self.object.classroom_id = self.kwargs['classroom_id']
         self.object.save()
