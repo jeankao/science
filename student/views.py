@@ -276,6 +276,7 @@ def submit(request, typing, lesson, index):
 
 
 def content_edit(request, types, typing, lesson, index, content_id):
+    assignment = TWork.objects.get(id=index)    
     if request.method == 'POST':       
         x = request.POST['content_id']
         try:
@@ -289,7 +290,7 @@ def content_edit(request, types, typing, lesson, index, content_id):
         except ObjectDoesNotExist:
             pass
         # 記錄事件
-        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+question_id+'>修改文字')
+        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+request['question_id']+'>修改文字')
         log.save()               
         return redirect("/student/work/submit/1/"+str(lesson)+"/"+str(index)+"/#tab1")
     else:
@@ -297,6 +298,7 @@ def content_edit(request, types, typing, lesson, index, content_id):
         return render(request, 'student/submitF1E.html', {'instance':instance})
 
 def content_delete(request, types, typing, lesson, index, content_id):
+  assignment = TWork.objects.get(id=index)    
   if types == 11 or types == 12:
     instance = Science1Content.objects.get(id=content_id)
     instance.deleted = True
