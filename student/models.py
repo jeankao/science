@@ -92,6 +92,7 @@ class Science1Content(models.Model):
     pic = models.FileField(blank=True,null=True)
     picname = models.CharField(max_length=60,null=True,blank=True)
     deleted = models.BooleanField(default=False)
+    edit_old = models.BooleanField(default=False)
 
 #Science4解釋
 class Science4Work(models.Model):

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from teacher.models import *
 from student.models import *
 from student.forms import *
+from account.models import *
 from django.views import generic
 from django.contrib.auth.models import User, Group
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -126,12 +127,19 @@ def submit(request, typing, lesson, index):
                         work.publication_date = timezone.now()
                         work.save()
                         obj.work_id=work.id
+                        if types == "11":
+                            # 記錄事件
+                            log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+question_id+'>新增文字')
+                            log.save()
                         if types == "12":
                             myfile = request.FILES['pic']
                             fs = FileSystemStorage(settings.BASE_DIR+"/static/upload/"+str(request.user.id)+"/")
                             filename = uuid4().hex
                             obj.picname = str(request.user.id)+"/"+filename
                             fs.save(filename, myfile)
+                            # 記錄事件
+                            log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+question_id+'>新增圖片')
+                            log.save()                            
                         obj.pic = ""
                         obj.save()
                         return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))
@@ -152,6 +160,14 @@ def submit(request, typing, lesson, index):
                         json.json = request.POST['jsonstr']
                         json.data['q'+qid] = request.POST['jsonstr']
                         json.save()
+                        if types == "21":
+                            # 記錄事件
+                            log = Log(user_id=request.user.id, event='<'+assignment.title+'>資料建模<'+str(qid)+'>')
+                            log.save()
+                        else:
+                            # 記錄事件
+                            log = Log(user_id=request.user.id, event='<'+assignment.title+'>流程建模<'+str(qid)+'>')
+                            log.save()
                         return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab"+types)
                     return redirect('/')
                 elif types == "3":
@@ -184,6 +200,9 @@ def submit(request, typing, lesson, index):
                         work.code=form.cleaned_data['code']
                         work.helps=form.cleaned_data['helps']
                         work.save()
+                        # 記錄事件
+                        log = Log(user_id=request.user.id, event='<'+assignment.title+'>程式化')
+                        log.save()                        
                         return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab3")
                 elif types == "41":
                     form = SubmitF4Form(request.POST)
@@ -197,20 +216,29 @@ def submit(request, typing, lesson, index):
                             work = work[0]
                         work.memo = form.cleaned_data['memo']
                         work.save()
+                        # 記錄事件
+                        log = Log(user_id=request.user.id, event='<'+assignment.title+'>觀察與除錯:心得')
+                        log.save()                       
                         return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab4")
                 elif types == "42":
                     form = SubmitF4BugForm(request.POST)
                     if form.is_valid():
                         form.save()
+                        # 記錄事件
+                        log = Log(user_id=request.user.id, event='<'+assignment.title+'>觀察與除錯:新增錯誤')
+                        log.save()                        
                         return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab4")
         else:
             contents1 = [[]]
             works_pool = Science1Work.objects.filter(student_id=request.user.id, index=index).order_by("-id")
-            questions = assignment.description['qStatus']
+            if 'qStatus' in assignment.description:
+                questions = assignment.description['qStatus']
+            else :
+                questions = []
             for qid in range(1, len(questions)+1):
                 works = list(filter(lambda w: w.question_id==qid, works_pool))
                 if len(works) > 0:
-                    contents = Science1Content.objects.filter(work_id=works[0].id).order_by("id")
+                    contents = Science1Content.objects.filter(work_id=works[0].id, edit_old=False, deleted=False).order_by("id")
                     if len(contents)>0:
                         contents1.append([contents])
                     else:
@@ -235,6 +263,8 @@ def submit(request, typing, lesson, index):
                 expr = Science2Json.objects.get(student_id=request.user.id, index=index, model_type=0)
             except ObjectDoesNotExist:
                 expr = Science2Json(student_id=request.user.id, index=index, model_type=0, json='{vars:[], arrs:[], exprs:[]}')
+            except MultipleObjectsReturned:
+                expr = Science2Json.objects.filter(student_id=request.user.id, index=index, model_type=0)[0]                
             try:
                 flow = Science2Json.objects.get(student_id=request.user.id, index=index, model_type=1)
             except ObjectDoesNotExist:
@@ -244,6 +274,24 @@ def submit(request, typing, lesson, index):
 
     return render(request, 'student/submit.html', {'form':form, 'assignment': assignment, 'typing':typing, 'lesson': lesson, 'lesson_id':lesson, 'index':index, 'work_dict':work_dict})
 
+
+def content_edit(request, types, typing, lesson, index, content_id):
+    if request.method == 'POST':       
+        x = request.POST['content_id']
+        try:
+            obj = Science1Content.objects.get(id=x)
+            obj.edit_old = True
+            obj.save()
+            obj.id = None
+            obj.edit_old = False
+            obj.text = request.POST['text']
+            obj.save()
+        except ObjectDoesNotExist:
+            pass
+        return redirect("/student/work/submit/1/"+str(lesson)+"/"+str(index)+"/#tab1")
+    else:
+        instance = Science1Content.objects.get(id=content_id)
+        return render(request, 'student/submitF1E.html', {'instance':instance})
 
 def content_delete(request, types, typing, lesson, index, content_id):
   if types == 11 or types == 12:

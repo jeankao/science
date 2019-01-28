@@ -11,6 +11,7 @@ urlpatterns = [
     path('classroom/<int:pk>/seat/', views.ClassroomSeatUpdate.as_view()),   
     path('work/<int:typing>/<int:lesson>/<int:classroom_id>/', views.work_list),
     path('work/submit/<int:typing>/<int:lesson>/<int:index>/', views.submit),
+    path('work/content/edit/<int:types>/<int:typing>/<int:lesson>/<int:index>/<int:content_id>/', views.content_edit),
     path('work/content/delete/<int:types>/<int:typing>/<int:lesson>/<int:index>/<int:content_id>/', views.content_delete),
 
 ]

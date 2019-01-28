@@ -542,3 +542,20 @@ class Science1QuestionUpdate(UpdateView):
     # 成功新增選項後要導向其所屬的投票主題檢視頁面
     def get_success_url(self):
         return "/teacher/work/question/"+str(self.kwargs['lesson'])+"/"+str(self.kwargs['classroom_id'])+"/"+str(self.kwargs['work_id'])
+
+# 列出所有記錄
+class LogList(ListView):
+    model = Log
+    context_object_name = 'logs'
+    template_name = 'teacher/log_list.html'
+    paginate_by = 50
+
+    def get_queryset(self):
+        enroll_pool = [enroll for enroll in Enroll.objects.filter(classroom_id=self.kwargs['classroom_id']).order_by('seat')]
+        student_ids = map(lambda a: a.student_id, enroll_pool)        
+        queryset = Log.objects.filter(user_id__in=student_ids).order_by("-id")
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(LogList, self).get_context_data(**kwargs)
+        return context

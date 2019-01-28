@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+{% load tag %}
+  <div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="tab{{q_index}}11" role="tabpanel" aria-labelledby="tab11-tab">
+      <form action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type=hidden name="types" value="11">
+        <input type=hidden name="index" value="{{index}}"> 
+        <input type=hidden name="q_index" value="{{q_index}}">     		
+        <input type=hidden name="question_id" value="{{q_index}}">  
+        <input type=hidden name="content_id" value="{{instance.id}}">   		
+        <div class="form-group">
+          <label for="text-memo">文字</label>
+          <textarea name="text" id="text-memo" rows="10" class="form-control">{{instance.text}}</textarea>
+        </div>
+        <input type="submit" value="送出" class="btn btn-info" />
+      </form>
+    </div>
+  </div>
+</section>
+<BR>
+{% endblock %}
