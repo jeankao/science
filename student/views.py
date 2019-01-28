@@ -275,7 +275,7 @@ def submit(request, typing, lesson, index):
     return render(request, 'student/submit.html', {'form':form, 'assignment': assignment, 'typing':typing, 'lesson': lesson, 'lesson_id':lesson, 'index':index, 'work_dict':work_dict})
 
 
-def content_edit(request, types, typing, lesson, index, content_id):
+def content_edit(request, types, typing, lesson, index, question_id, content_id):
     assignment = TWork.objects.get(id=index)    
     if request.method == 'POST':       
         x = request.POST['content_id']
@@ -290,14 +290,14 @@ def content_edit(request, types, typing, lesson, index, content_id):
         except ObjectDoesNotExist:
             pass
         # 記錄事件
-        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+request.POST['question_id']+'>修改文字')
+        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+str(question_id)+'>修改文字')
         log.save()               
-        return redirect("/student/work/submit/1/"+str(lesson)+"/"+str(index)+"/#tab1")
+        return redirect("/student/work/submit/1/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))
     else:
         instance = Science1Content.objects.get(id=content_id)
-        return render(request, 'student/submitF1E.html', {'instance':instance})
+        return render(request, 'student/submitF1E.html', {'instance':instance, 'q_index':question_id})
 
-def content_delete(request, types, typing, lesson, index, content_id):
+def content_delete(request, types, typing, lesson, index, question_id, content_id):
   assignment = TWork.objects.get(id=index)    
   if types == 11 or types == 12:
     instance = Science1Content.objects.get(id=content_id)
@@ -305,10 +305,10 @@ def content_delete(request, types, typing, lesson, index, content_id):
     instance.save()
     if types == 11:
         # 記錄事件
-        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+question_id+'>刪除文字')
+        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+str(question_id)+'>刪除文字')
         log.save() 
     else:
         # 記錄事件
-        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+question_id+'>刪除圖片')
+        log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+str(question_id)+'>刪除圖片')
         log.save()     
-    return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab1")
+    return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))
