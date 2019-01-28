@@ -306,22 +306,22 @@ $(function () {
 
   $('#arr-rows').change(function(event) {
     var arr_rows = parseInt($(this).val());
-    for (var i = 1; i < 10; i++) {
-      if (i < arr_rows)
-        $('#modal-new-array tr:nth-child('+(i+2)+')').removeClass('d-none');
-      else
-        $('#modal-new-array tr:nth-child('+(i+2)+')').addClass('d-none');
+    if (arr_rows < 1 || arr_rows > 10) {
+      arr_rows = arr_rows < 1 ? 1 : 10;
+      $(this).val(arr_rows);
     }
+    $('#modal-new-array tr:nth-child(n+2):nth-child(-n+'+(arr_rows+1)+')').removeClass('d-none');
+    $('#modal-new-array tr:nth-child(n+'+(arr_rows+2)+'):nth-child(-n+11)').addClass('d-none');
   });
 
   $('#arr-cols').change(function(event) {
     var arr_cols = parseInt($(this).val());
-    for (var i = 1; i < 10; i++) {
-      if (i < arr_cols)
-        $('#modal-new-array tr :nth-child('+(i+2)+')').removeClass('d-none');
-      else
-        $('#modal-new-array tr :nth-child('+(i+2)+')').addClass('d-none');
+    if (arr_cols < 1 || arr_cols > 10) {
+      arr_cols = arr_cols < 1 ? 1 : 10;
+      $(this).val(arr_cols);
     }
+    $('#modal-new-array tr > :nth-child(n+2):nth-child(-n+'+(arr_cols+1)+')').removeClass('d-none');
+    $('#modal-new-array tr > :nth-child(n+'+(arr_cols+2)+'):nth-child(-n+11)').addClass('d-none');
   });
 
   $('#arr-2d').change(function(event) {
@@ -552,15 +552,11 @@ $(function () {
     $(formID + ' input[name="qid"]').val(qid+1);
   }
 
-  function resetExpressionEditor() {
-    $('#var-list, #arr-list, #expr-list').empty();
-  }
-
   function qData_switch(qid) {
     var curr_qid = 0 + $('#expr-form input[name="qid"]').val() - 1;
     if (qid === curr_qid)
       return;
-    resetExpressionEditor();
+    $('#var-list, #arr-list, #expr-list').empty();
     genericQSwitch('#data-qTitle', 'qData', '#qData-switch', '#expr-form', curr_qid, qid);
     initExprElements();
   }
@@ -617,3 +613,5 @@ $(function () {
     $('#expr-form').submit();
   });
 });
+
+$('#modal-new-array input').addClass('form-control text-center');
