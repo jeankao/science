@@ -33,7 +33,7 @@ class MessageContent(models.Model):
     user_id = models.IntegerField(default=0)
     title =  models.CharField(max_length=250,null=True,blank=True)
     filename = models.CharField(max_length=250,null=True,blank=True)    
-    publication_date = models.DateTimeField(default=timezone.now)\
+    publication_date = models.DateTimeField(default=timezone.now)
     
 # 系統記錄
 class Log(models.Model):

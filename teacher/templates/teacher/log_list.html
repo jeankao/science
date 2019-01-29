@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load tag %}
+{% load tz %}
 {% block content %}
 <table class="table">
     <tr>
@@ -10,7 +11,7 @@
     {% for log in logs %}
     <tr>
         <td>{{log.user_id|realname}}</td>
-        <td>{{log.publish}}</td>
+        <td>{{log.publish|localtime}}</td>
         <td>{{log.event}}</td>
     </tr>
     {% endfor %}
