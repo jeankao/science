@@ -139,7 +139,7 @@ def submit(request, typing, lesson, index):
                             fs.save(filename, myfile)
                             # 記錄事件
                             log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+question_id+'>新增圖片')
-                            log.save()                            
+                            log.save()
                         obj.pic = ""
                         obj.save()
                         return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))
@@ -201,7 +201,7 @@ def submit(request, typing, lesson, index):
                         work.save()
                         # 記錄事件
                         log = Log(user_id=request.user.id, event='<'+assignment.title+'>程式化')
-                        log.save()                        
+                        log.save()
                         return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab3")
                 elif types == "41":
                     form = SubmitF4Form(request.POST)
@@ -217,7 +217,7 @@ def submit(request, typing, lesson, index):
                         work.save()
                         # 記錄事件
                         log = Log(user_id=request.user.id, event='<'+assignment.title+'>觀察與除錯:心得')
-                        log.save()                       
+                        log.save()
                         return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab4")
                 elif types == "42":
                     form = SubmitF4BugForm(request.POST)
@@ -225,7 +225,7 @@ def submit(request, typing, lesson, index):
                         form.save()
                         # 記錄事件
                         log = Log(user_id=request.user.id, event='<'+assignment.title+'>觀察與除錯:新增錯誤')
-                        log.save()                        
+                        log.save()
                         return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab4")
         else:
             contents1 = [[]]
@@ -263,7 +263,7 @@ def submit(request, typing, lesson, index):
             except ObjectDoesNotExist:
                 expr = Science2Json(student_id=request.user.id, index=index, model_type=0)
             except MultipleObjectsReturned:
-                expr = Science2Json.objects.filter(student_id=request.user.id, index=index, model_type=0)[0]                
+                expr = Science2Json.objects.filter(student_id=request.user.id, index=index, model_type=0)[0]
             try:
                 flow = Science2Json.objects.get(student_id=request.user.id, index=index, model_type=1)
             except ObjectDoesNotExist:
@@ -275,8 +275,8 @@ def submit(request, typing, lesson, index):
 
 
 def content_edit(request, types, typing, lesson, index, question_id, content_id):
-    assignment = TWork.objects.get(id=index)    
-    if request.method == 'POST':       
+    assignment = TWork.objects.get(id=index)
+    if request.method == 'POST':
         x = request.POST['content_id']
         try:
             obj = Science1Content.objects.get(id=x)
@@ -290,14 +290,14 @@ def content_edit(request, types, typing, lesson, index, question_id, content_id)
             pass
         # 記錄事件
         log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+str(question_id)+'>修改文字')
-        log.save()               
+        log.save()
         return redirect("/student/work/submit/1/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))
     else:
         instance = Science1Content.objects.get(id=content_id)
         return render(request, 'student/submitF1E.html', {'instance':instance, 'q_index':question_id})
 
 def content_delete(request, types, typing, lesson, index, question_id, content_id):
-  assignment = TWork.objects.get(id=index)    
+  assignment = TWork.objects.get(id=index)
   if types == 11 or types == 12:
     instance = Science1Content.objects.get(id=content_id)
     instance.deleted = True
@@ -305,9 +305,9 @@ def content_delete(request, types, typing, lesson, index, question_id, content_i
     if types == 11:
         # 記錄事件
         log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+str(question_id)+'>刪除文字')
-        log.save() 
+        log.save()
     else:
         # 記錄事件
         log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+str(question_id)+'>刪除圖片')
-        log.save()     
+        log.save()
     return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))

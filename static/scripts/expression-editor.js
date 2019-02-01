@@ -2,11 +2,11 @@ $(function () {
   //
   // flow editor
   //
-  const CS_INPUT = 0, 
-        CS_OUTPUT = 1, 
-        CS_LOOP = 2, 
+  const CS_INPUT = 0,
+        CS_OUTPUT = 1,
+        CS_LOOP = 2,
         CS_IF = 3;
-  
+
   const FLOW_TYPE_LABEL = ["輸入", "輸出", "迴圈", "判斷"];
   const FLOW_TYPE_CLASS = ["input", "output", "loop", "if"];
 
@@ -68,19 +68,19 @@ $(function () {
         var item = $(children[i]);
         if (item.hasClass('if') || item.hasClass('loop')) {
           data.push({
-            type: item.hasClass('if') ? CS_IF : CS_LOOP, 
+            type: item.hasClass('if') ? CS_IF : CS_LOOP,
             criteria: $('input[type="text"]', item).val(),
             content: _collect_flow_items($('.flow-container', item).get(0)),
           });
         } else {
           data.push({
-            type: item.hasClass('input') ? CS_INPUT : CS_OUTPUT, 
+            type: item.hasClass('input') ? CS_INPUT : CS_OUTPUT,
             content: $('textarea', item).val(),
           });
         }
       }
       return data;
-    }    
+    }
     var data = _collect_flow_items('#flow-list');
     $('#flow-form input[name="jsonstr"]').val(JSON.stringify(data));
     $('#flow-form').submit();

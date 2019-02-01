@@ -155,4 +155,4 @@ class Science2Json(models.Model):
     index = models.IntegerField(default=0)
     student_id = models.IntegerField(default=0)
     model_type = models.IntegerField(default=0) # 0: 資料建模, 1: 流程建模
-    data = JSONField(encoder=DjangoJSONEncoder, default=dict)
+    data = JSONField(default=dict, encoder=DjangoJSONEncoder)

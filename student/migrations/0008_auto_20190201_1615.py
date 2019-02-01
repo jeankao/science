@@ -13,7 +13,7 @@ def migrate_expression(apps, schema_editor):
         for q in item.data:
             data = item.data[q]
             item.data[q] = [{'expr': data, 'created': timezone.now()}]
-        item.save()
+        item.save() 
 
 class Migration(migrations.Migration):
 
