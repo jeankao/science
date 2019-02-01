@@ -82,17 +82,15 @@ $(function () {
       return data;
     }    
     var data = _collect_flow_items('#flow-list');
-    console.log(data);
     $('#flow-form input[name="jsonstr"]').val(JSON.stringify(data));
-    console.log($('#flow-form input[name="jsonstr"]').val());
     $('#flow-form').submit();
   });
 
-  function initFlowElements() {
+  function initFlowElements(hid=0) {
     var curr_qid = $('#flow-form input[name="qid"]').val();
     var flowjson;
     try {
-      flowjson = JSON.parse(flowdata['q'+curr_qid]);
+      flowjson = JSON.parse(flowdata['q'+curr_qid][hid].expr);
     } catch (error) {
       flowjson =[];
     }
@@ -101,7 +99,6 @@ $(function () {
 
     for (var i = 0; i < size; i++) {
       item = items[i];
-      console.log(item);
       _new_flow_item(item.type, item.content, '#flow-list', item.type < CS_LOOP ? '' : item.criteria);
     }
   }
@@ -147,7 +144,6 @@ $(function () {
   }
 
   function _new_arr_expr_block(item_str, parent) {
-    //console.log('_arr_expr_block', item_str);
     var container = $('<ul class="expr-rhs expr-item-list"></ul>');
     var tokens = item_str.match(/\w+|[\(\)+\-*\/^]/g);
     for (var i = 0; i < tokens.length; i++)
@@ -161,7 +157,6 @@ $(function () {
       element.addClass('btn btn-sm');
     if (type === 'arr' && add_container) {
       var name = item.match(/[^\[\]]+/g);
-      //console.log('name = ', name);
       if (name && name.length > 1) {
         element.append(name[0]);
         for (var i = 1; i < name.length; i++) {
@@ -481,18 +476,17 @@ $(function () {
 
   //-------------------------------------------------------------------------
   // 初始化先前送出的舊運算式
-  function initExprElements() {
-    //console.log(exprjson);
+  function initExprElements(hid = 0) {
     // init vars
     var curr_qid = $('#expr-form input[name="qid"]').val();
     var exprjson;
     try {
-      exprjson = JSON.parse(exprdata['q'+curr_qid]);
+      exprjson = JSON.parse(exprdata['q'+curr_qid][hid].expr);
     } catch (error) {
       exprjson = {
-        vars: [],
-        arrs: [],
-        exprs: [],
+        'vars': [],
+        'arrs': [],
+        'exprs': [],
       };
     }
     var items = exprjson['vars'];
@@ -552,22 +546,48 @@ $(function () {
     $(formID + ' input[name="qid"]').val(qid+1);
   }
 
+  function generateHistoryItems(items, container, itemContainers, initElementsCallback) {
+    try {
+      if (items != undefined) {
+        for (var i = 0; i < items.length; i++) {
+          var item = items[i];
+          $('<div class="list-group-item'+(i == 0 ? " active" : "")+'"><span class="badge badge-light">'+(i+1)+'</span> '+(new Date(item.created))+'</div>').appendTo(container);
+        }
+      }
+    } catch(error) {
+
+    }
+
+    $(container).click(function(event) {
+      var me = $(event.target);
+      if (me.hasClass('active'))
+        return;
+      $(itemContainers).empty();
+      var hid = parseInt($('span', me).text())-1;
+      $(container+'>.list-group-item.active').removeClass('active');
+      me.addClass('active');
+      initElementsCallback(hid);
+    });
+  }
+
   function qData_switch(qid) {
     var curr_qid = 0 + $('#expr-form input[name="qid"]').val() - 1;
     if (qid === curr_qid)
       return;
-    $('#var-list, #arr-list, #expr-list').empty();
+    $('#var-list, #arr-list, #expr-list, #expr-history').empty();
     genericQSwitch('#data-qTitle', 'qData', '#qData-switch', '#expr-form', curr_qid, qid);
     initExprElements();
+    generateHistoryItems(exprdata['q'+(qid+1)], '#expr-history', '#var-list, #arr-list, #expr-list', initExprElements);
   }
 
   function qFlow_switch(qid) {
     var curr_qid = 0 + $('#flow-form input[name="qid"]').val() - 1;
     if (qid === curr_qid)
       return;
-    $('#flow-list').empty();
+    $('#flow-list, #flow-history').empty();
     genericQSwitch('#flow-qTitle', 'qFlow', '#qFlow-switch', '#flow-form', curr_qid, qid);
     initFlowElements();
+    generateHistoryItems(flowdata['q'+(qid+1)], '#flow-history', '#flow-list', initFlowElements);
   }
 
   $('#qData-switch .btn').click(function(event) {

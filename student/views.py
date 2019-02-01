@@ -156,9 +156,9 @@ def submit(request, typing, lesson, index):
                                 json = Science2Json(index=index, student_id=request.user.id, model_type=model_type)
                         else:
                             json = Science2Json(index=index, student_id=request.user.id, model_type=model_type)
-
-                        json.json = request.POST['jsonstr']
-                        json.data['q'+qid] = request.POST['jsonstr']
+                        if 'q'+qid not in json.data:
+                            json.data['q'+qid] = []
+                        json.data['q'+qid].insert(0, {'expr': request.POST['jsonstr'], 'created': timezone.now()})
                         json.save()
                         if types == "21":
                             # 記錄事件
@@ -168,8 +168,7 @@ def submit(request, typing, lesson, index):
                             # 記錄事件
                             log = Log(user_id=request.user.id, event='<'+assignment.title+'>流程建模<'+str(qid)+'>')
                             log.save()
-                        return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab"+types)
-                    return redirect('/')
+                        return redirect("/student/work/submit/{}/{}/{}/#tab{}".format(typing, lesson, index, types))
                 elif types == "3":
                     form = SubmitF3Form(request.POST, request.FILES)
                     if form.is_valid():
@@ -262,13 +261,13 @@ def submit(request, typing, lesson, index):
             try:
                 expr = Science2Json.objects.get(student_id=request.user.id, index=index, model_type=0)
             except ObjectDoesNotExist:
-                expr = Science2Json(student_id=request.user.id, index=index, model_type=0, json='{vars:[], arrs:[], exprs:[]}')
+                expr = Science2Json(student_id=request.user.id, index=index, model_type=0)
             except MultipleObjectsReturned:
                 expr = Science2Json.objects.filter(student_id=request.user.id, index=index, model_type=0)[0]                
             try:
                 flow = Science2Json.objects.get(student_id=request.user.id, index=index, model_type=1)
             except ObjectDoesNotExist:
-                flow = Science2Json(student_id=request.user.id, index=index, model_type=1, json='[]')
+                flow = Science2Json(student_id=request.user.id, index=index, model_type=1)
             questions = Science1Question.objects.filter(work_id=index)
             return render(request, 'student/submit.html', {'form':form, 'assignment': assignment, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow})
 

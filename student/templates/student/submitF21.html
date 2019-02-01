@@ -59,6 +59,8 @@
     <button class="btn btn-info form-control" id="expr-submit">送出</button>
   </div>
 </div>
+<hr />
+<div class="list-group" id="expr-history"></div>
 
 <!-- Modal -->
 <div class="modal fade" id="modal-new-var" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -283,7 +285,6 @@
 
 <script>
   var assignment = {{ assignment.description|safe }}
-  var flowjson = {{ flow.json | safe }};
   var exprdata = {{ expr.data|safe }};
   var flowdata = {{ flow.data|safe }};
 </script>

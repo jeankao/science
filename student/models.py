@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from teacher.models import Classroom
 from django.utils import timezone
 from django.contrib.postgres.fields import JSONField
+from django.core.serializers.json import DjangoJSONEncoder
 
 # 學生選課資料
 class Enroll(models.Model):
@@ -154,5 +155,4 @@ class Science2Json(models.Model):
     index = models.IntegerField(default=0)
     student_id = models.IntegerField(default=0)
     model_type = models.IntegerField(default=0) # 0: 資料建模, 1: 流程建模
-    json = models.TextField(default='')
-    data = JSONField(default=dict)
+    data = JSONField(encoder=DjangoJSONEncoder, default=dict)
