@@ -5,7 +5,7 @@ from student.forms import *
 from account.models import *
 from django.views import generic
 from django.contrib.auth.models import User, Group
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import IntegrityError
 from django.conf import settings
@@ -14,6 +14,15 @@ from uuid import uuid4
 from wsgiref.util import FileWrapper
 from binascii import a2b_base64
 import os
+
+# 判斷是否為授課教師
+def is_teacher(user, classroom_id):
+    if Classroom.objects.filter(teacher_id=user.id, id=classroom_id).exists():
+        return True
+    elif Assistant.objects.filter(user_id=user.id, classroom_id=classroom_id).exists():
+        return True
+    return False
+
 class ClassroomList(generic.ListView):
     model = Classroom
     paginate_by = 3
@@ -102,10 +111,10 @@ def work_list(request, typing, lesson, classroom_id):
             lessons.append([assignment, work_dict[index]])
     return render(request, 'student/work_list.html', {'typing':typing, 'lesson':lesson, 'lessons':lessons, 'classroom':classroom})
 
-def submit(request, typing, lesson, index):
+def submit(request, classroom_id, typing, lesson, index, user_id):
     work_dict = {}
     form = None
-    work_dict = dict(((int(work.index), [work, WorkFile.objects.filter(work_id=work.id).order_by("-id")]) for work in Work.objects.filter(typing=typing, lesson_id=lesson, user_id=request.user.id)))
+    work_dict = dict(((int(work.index), [work, WorkFile.objects.filter(work_id=work.id).order_by("-id")]) for work in Work.objects.filter(typing=typing, lesson_id=lesson, user_id=user_id)))
     assignment = TWork.objects.get(id=index)
 
     if lesson == 1:
@@ -118,18 +127,18 @@ def submit(request, typing, lesson, index):
                     if form.is_valid():
                         obj = form.save(commit=False)
                         try:
-                            work = Science1Work.objects.get(student_id=request.user.id, index=index, question_id=question_id)
+                            work = Science1Work.objects.get(student_id=user_id, index=index, question_id=question_id)
                         except ObjectDoesNotExist:
-                            work = Science1Work(student_id=request.user.id, index=index, question_id=question_id)
+                            work = Science1Work(student_id=user_id, index=index, question_id=question_id)
                         except MultipleObjectsReturned:
-                            works = Science1Work.objects.filter(student_id=request.user.id, index=index, question_id=question_id).order_by("-id")
+                            works = Science1Work.objects.filter(student_id=user_id, index=index, question_id=question_id).order_by("-id")
                             work = work[0]
                         work.publication_date = timezone.now()
                         work.save()
                         obj.work_id=work.id
                         if types == "11":
                             # 記錄事件
-                            log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+question_id+'>新增文字')
+                            log = Log(user_id=user_id, event='<'+assignment.title+'>現象描述<'+question_id+'>新增文字')
                             log.save()
                         if types == "12":
                             myfile = request.FILES['pic']
@@ -138,13 +147,13 @@ def submit(request, typing, lesson, index):
                             obj.picname = str(request.user.id)+"/"+filename
                             fs.save(filename, myfile)
                             # 記錄事件
-                            log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+question_id+'>新增圖片')
+                            log = Log(user_id=user_id, event='<'+assignment.title+'>現象描述<'+question_id+'>新增圖片')
                             log.save()
                         obj.pic = ""
                         obj.save()
                         obj.edit_id = obj.id
                         obj.save()
-                        return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))
+                        return redirect("/student/work/submit/"+str(classroom_id)+"/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/"+str(user_id)+"/#question"+str(question_id))
                 elif types in ["21", "22"]: # 資料建模, 流程建模
                     form = SubmitF2Form(request.POST)
                     model_type = int(types == "22")
@@ -164,13 +173,13 @@ def submit(request, typing, lesson, index):
                         json.save()
                         if types == "21":
                             # 記錄事件
-                            log = Log(user_id=request.user.id, event='<'+assignment.title+'>資料建模<'+str(qid)+'>')
+                            log = Log(user_id=user_id, event='<'+assignment.title+'>資料建模<'+str(qid)+'>')
                             log.save()
                         else:
                             # 記錄事件
-                            log = Log(user_id=request.user.id, event='<'+assignment.title+'>流程建模<'+str(qid)+'>')
+                            log = Log(user_id=user_id, event='<'+assignment.title+'>流程建模<'+str(qid)+'>')
                             log.save()
-                        return redirect("/student/work/submit/{}/{}/{}/#tab{}".format(typing, lesson, index, types))
+                        return redirect("/student/work/submit/{}/{}/{}/{}/{}/#tab{}".format(classroom_id, typing, lesson, index, user_id, types))
                 elif types == "3":
                     form = SubmitF3Form(request.POST, request.FILES)
                     if form.is_valid():
@@ -202,42 +211,41 @@ def submit(request, typing, lesson, index):
                         work.helps=form.cleaned_data['helps']
                         work.save()
                         # 記錄事件
-                        log = Log(user_id=request.user.id, event='<'+assignment.title+'>程式化')
+                        log = Log(user_id=user_id, event='<'+assignment.title+'>程式化')
                         log.save()
-                        return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab3")
+                        return redirect("/student/work/submit/"+str(classroom_id)+"/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/"+str(user_id)+"/#tab3")
                 elif types == "41":
                     form = SubmitF4Form(request.POST)
                     if form.is_valid():
-                        try:
-                            work = Science4Work.objects.get(student_id=request.user.id, index=index)
-                        except ObjectDoesNotExist:
-                            work = Science4Work(student_id=request.user.id, index=index)
-                        except MultipleObjectsReturned:
-                            works = Science4Work.objects.filter(student_id=request.user.id, index=index).order_by("-id")
-                            work = work[0]
-                        work.memo = form.cleaned_data['memo']
+                        work = Science4Work(student_id=user_id, index=index, memo=form.cleaned_data['memo'])
                         work.save()
                         # 記錄事件
-                        log = Log(user_id=request.user.id, event='<'+assignment.title+'>觀察與除錯:心得')
+                        log = Log(user_id=user_id, event='<'+assignment.title+'>觀察與除錯:心得')
                         log.save()
-                        return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab4")
+                        return redirect("/student/work/submit/"+str(classroom_id)+"/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/"+str(user_id)+"/#tab4")
                 elif types == "42":
                     form = SubmitF4BugForm(request.POST)
                     if form.is_valid():
                         form.save()
                         # 記錄事件
-                        log = Log(user_id=request.user.id, event='<'+assignment.title+'>觀察與除錯:新增錯誤')
+                        log = Log(user_id=user_id, event='<'+assignment.title+'>觀察與除錯:新增錯誤')
                         log.save()
-                        return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#tab4")
+                        return redirect("/student/work/submit/"+str(classroom_id)+"/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/"+str(user_id)+"/#tab4")
         else:
+            if not is_teacher(request.user, classroom_id) and not user_id == request.user.id:
+                return redirect("/")
             contents1 = [[]]
-            works_pool = Science1Work.objects.filter(student_id=request.user.id, index=index).order_by("-id")
+            works_pool = Science1Work.objects.filter(student_id=user_id, index=index).order_by("-id")
             if 'qStatus' in assignment.description:
                 questions = assignment.description['qStatus']
             else :
                 questions = []
             for qid in range(1, len(questions)+1):
                 works = list(filter(lambda w: w.question_id==qid, works_pool))
+                if len(works)>0:
+                    work_id = works[0].id
+                else:
+                    work_id = works_pool
                 content_list = []
                 for work in works:
                     contents = Science1Content.objects.filter(work_id=work.id, edit_old=False, deleted=False)
@@ -247,34 +255,28 @@ def submit(request, typing, lesson, index):
                         history_list.append([content, history])
                     content_list.append([work, history_list])
                 contents1.append([works, content_list])
-            works3 = Science3Work.objects.filter(student_id=request.user.id, index=index).order_by("id")
+            works3 = Science3Work.objects.filter(student_id=user_id, index=index).order_by("id")
             work3_ids = [work.id for work in works3]
             if works3.exists():
                 work3 = works3[0]
             else :
-                work3 = Science3Work(student_id=request.user.id, index=index)
-            try:
-                work4 = Science4Work.objects.get(student_id=request.user.id, index=index)
-            except ObjectDoesNotExist:
-                work4 = Science4Work(student_id=request.user.id, index=index)
-            except MultipleObjectsReturned:
-                works4 = Science4Work.objects.filter(student_id=request.user.id, index=index).order_by("-id")
-                work4 = works[0]
+                work3 = Science3Work(student_id=user_id, index=index)
+            work4 = Science4Work.objects.filter(student_id=user_id, index=index).order_by("-id")
             contents4 = Science4Debug.objects.filter(work3_id__in=work3_ids).order_by("-id")
             try:
-                expr = Science2Json.objects.get(student_id=request.user.id, index=index, model_type=0)
+                expr = Science2Json.objects.get(student_id=user_id, index=index, model_type=0)
             except ObjectDoesNotExist:
-                expr = Science2Json(student_id=request.user.id, index=index, model_type=0)
+                expr = Science2Json(student_id=user_id, index=index, model_type=0)
             except MultipleObjectsReturned:
-                expr = Science2Json.objects.filter(student_id=request.user.id, index=index, model_type=0)[0]
+                expr = Science2Json.objects.filter(student_id=user_id, index=index, model_type=0)[0]
             try:
-                flow = Science2Json.objects.get(student_id=request.user.id, index=index, model_type=1)
+                flow = Science2Json.objects.get(student_id=user_id, index=index, model_type=1)
             except ObjectDoesNotExist:
-                flow = Science2Json(student_id=request.user.id, index=index, model_type=1)
+                flow = Science2Json(student_id=user_id, index=index, model_type=1)
             questions = Science1Question.objects.filter(work_id=index)
-            return render(request, 'student/submit.html', {'form':form, 'work_id':works[0].id, 'assignment': assignment, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow})
+            return render(request, 'student/submit.html', {'user_id': user_id, 'form':form, 'work_id':work_id, 'assignment': assignment, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow})
 
-    return render(request, 'student/submit.html', {'form':form, 'assignment': assignment, 'typing':typing, 'lesson': lesson, 'lesson_id':lesson, 'index':index, 'work_dict':work_dict})
+    return render(request, 'student/submit.html', {'user_id': user_id,'form':form, 'assignment': assignment, 'typing':typing, 'lesson': lesson, 'lesson_id':lesson, 'index':index, 'work_dict':work_dict})
 
 
 def content_edit(request, types, typing, lesson, index, question_id, content_id):
@@ -330,3 +332,30 @@ def content1_history(request, typing, lesson, index, question_id):
         content_list.append([work, history_list])
     contents1.append([works, content_list])
     return render(request, 'student/content1_history.html', {'contents1':contents1, 'q_index':question_id})
+
+# 評分所有心得
+class WorkMemoList(ListView):
+    model = Enroll
+    context_object_name = 'memos'
+    template_name = 'student/work_memo.html'
+    paginate_by = 50
+
+    def get_queryset(self):
+        enrolls = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id']).order_by("-seat")
+        enroll_ids = list(map(lambda a: a.student_id, enrolls))
+        queryset = []
+        memo_pool = Science4Work.objects.filter(student_id__in=enroll_ids, index=self.kwargs['index']).order_by("-id")
+        for enroll in enrolls :
+            memo = list(filter(lambda w: w.student_id==enroll.student_id, memo_pool))
+            if len(memo)>0:
+                queryset.append([enroll, memo[0]])
+            else:
+                queryset.append([enroll, None])
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(WorkMemoList, self).get_context_data(**kwargs)
+        context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
+        context['lesson'] = self.kwargs['lesson']
+        context['index'] = self.kwargs['index']
+        return context

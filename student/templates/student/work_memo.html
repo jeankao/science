@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load tag %}
+{% block content %}
+<table class="table">
+  <tr>
+      <th>帳號</th>
+      <th>座號</th>        
+      <th>姓名</th>
+      <th>心得</th>
+  </tr>
+{% for enroll, memo in memos %}
+  <tr>
+    <td>{{enroll.student.username}}</td>
+    <td>{{enroll.seat}}</td>
+    <td>{{enroll.student.first_name}}</td>
+    <td>{{memo.memo|memo|safe}}</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

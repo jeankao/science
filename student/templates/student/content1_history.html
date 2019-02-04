@@ -11,6 +11,7 @@
    <div class="card-body"><img src="/static/upload/{{ work.picname }}" style="max-width:900px"></div>                      
               {% elif work.types == 11 %}
   <div class="card-header"><button type="button" class="btn btn-default">{{forloop.counter}}</button> {% if history %}{{history.0.publication_date}}{% else %}{{work.publication_date}}{% endif %} -- 修改</a>({{history|length}})
+    {% if work.deleted %}<button class="btn btn-danger">已刪除</button>{% endif %}
   </div>  
   <div class="card-body">{{ work.text|memo|safe }}
   {% for item in history %}

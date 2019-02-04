@@ -24,6 +24,7 @@ urlpatterns = [
     path('work/question/answer/<int:lesson>/<int:classroom_id>/<int:work_id>/<int:q_id>/', views.Science1QuestionAnswer.as_view()),	
     path('work/question/add/<int:lesson>/<int:classroom_id>/<int:work_id>/', views.Science1QuestionCreate.as_view()),
     path('work/question/update/<int:pk>/<int:lesson>/<int:classroom_id>/<int:work_id>/', views.Science1QuestionUpdate.as_view()),    
+    path('work/score/<int:lesson>/<int:classroom_id>/<int:index>', views.WorkScoreList.as_view()),    
     # 記錄
     path('log/<int:classroom_id>/', views.LogList.as_view()),    
 ]

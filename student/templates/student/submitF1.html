@@ -1,6 +1,7 @@
 {% load tag %}
 <section class="wrapper">
   <h2>{{question|safe|linebreaks}}</h2>
+  {% if user_id == request.user.id %}
   <ul class="nav nav-pills" id="myTab" role="tablist">
     <li class="nav-item">
       <a class="nav-link active" data-toggle="tab" href="#tab{{q_index}}11" role="tab" aria-selected="true">上傳文字</a>
@@ -10,6 +11,7 @@
     </li>
   </ul>
   <br/>
+
   <div class="tab-content" id="myTabContent">
     <div class="tab-pane fade show active" id="tab{{q_index}}11" role="tabpanel" aria-labelledby="tab11-tab">
       <form action="" method="post" enctype="multipart/form-data">
@@ -44,6 +46,7 @@
   </div>
 </section>
 <BR>
+  {% endif %}
 
 {% if q_index > 0 %}
 {% for contents in contents1|list_item:q_index %}

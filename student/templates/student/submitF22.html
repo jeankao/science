@@ -32,7 +32,9 @@
       <input type="hidden" name="qid" value="" />
       <input type="hidden" name="jsonstr" id="jsonstr" value="">
     </form>
+    {% if user_id == request.user.id %}
     <button class="btn btn-info form-control" id="flow-submit">送出</button>
+    {% endif %}
   </div>
 </div>
 <hr />

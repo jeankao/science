@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load tag %}
+{% block content %}
+<table class="table">
+  <tr>
+      <th>帳號</th>
+      <th>座號</th>        
+      <th>姓名</th>
+      <th>觀看</th>
+  </tr>
+{% for enroll in enrolls %}
+  <tr>
+    <td>{{enroll.student.username}}</td>
+    <td>{{enroll.seat}}</td>
+    <td>{{enroll.student.first_name}}</td>
+    <td><a href="/student/work/submit/{{classroom.id}}/1/{{lesson}}/{{index}}/{{enroll.student_id}}">觀看</td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

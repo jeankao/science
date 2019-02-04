@@ -1,8 +1,15 @@
 {% extends "base.html" %}
+{% load tag %}
 {% block content %}
 <!--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
 <section class="wrapper">
-  <h1>{{ assignment.title }}</h1>
+  
+  <h1>
+      {% if user_id != request.user.id %}
+      <button class="btn btn-primary">{{user_id|realname}}</button>
+      {% endif %}
+      {{ assignment.title }}
+    </h1>
   <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item">
       <a class="nav-link active" data-toggle="tab" href="#tab1" role="tab" aria-selected="true">現象描述</a>

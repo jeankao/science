@@ -559,3 +559,21 @@ class LogList(ListView):
     def get_context_data(self, **kwargs):
         context = super(LogList, self).get_context_data(**kwargs)
         return context
+
+# 評分所有同學
+class WorkScoreList(ListView):
+    model = Enroll
+    context_object_name = 'enrolls'
+    template_name = 'teacher/work_score.html'
+    paginate_by = 50
+
+    def get_queryset(self):
+        queryset = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id']).order_by("seat")
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(WorkScoreList, self).get_context_data(**kwargs)
+        context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
+        context['lesson'] = self.kwargs['lesson']
+        context['index'] = self.kwargs['index']
+        return context
