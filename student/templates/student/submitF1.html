@@ -16,6 +16,7 @@
         {% csrf_token %}
         <input type=hidden name="types" value="11">
         <input type=hidden name="index" value="{{index}}"> 
+        <input type=hidden name="work_id" value="{{work_id}}">         
         <input type=hidden name="q_index" value="{{q_index}}">     		
         <input type=hidden name="question_id" value="{{q_index}}">     		
         <div class="form-group">
@@ -30,6 +31,7 @@
         {% csrf_token %}
         <input type=hidden name="types" value="12">
         <input type=hidden name="index" value="{{index}}"> 
+        <input type=hidden name="work_id" value="{{work_id}}">           
         <input type=hidden name="q_index" value="{{q_index}}">  		
         <input type=hidden name="question_id" value="{{q_index}}">     			
         <div class="form-group">
@@ -42,23 +44,27 @@
   </div>
 </section>
 <BR>
+
 {% if q_index > 0 %}
-{% for works in contents1|list_item:q_index %}
-{% for work in works %}
- <div class="card card-default"> 
+{% for contents in contents1|list_item:q_index %}
+{% for work, history in contents.0.1 %}
+<div class="card card-default"> 
               {% if work.types == 12 %}
-  <div class="card-header"><button type="button" class="btn btn-default">{{forloop.counter}}</button>
+  <div class="card-header"><button type="button" class="btn btn-default">{{forloop.counter}}</button> {{work.publication_date}} --
     <A href="/student/work/content/delete/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}" onclick="return confirm('確定要刪除嗎?')"><img src="/static/images/delete.gif"> 刪除</a>
       </div>
    <div class="card-body"><img src="/static/upload/{{ work.picname }}" style="max-width:900px"></div>                      
               {% elif work.types == 11 %}
-  <div class="card-header"><button type="button" class="btn btn-default">{{forloop.counter}}</button>
+  <div class="card-header"><button type="button" class="btn btn-default">{{forloop.counter}}</button> {% if history %}{{history.0.publication_date}}{% else %}{{work.publication_date}}{% endif %} --
     <A href="/student/work/content/delete/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}" onclick="return confirm('確定要刪除嗎?')"><img src="/static/images/delete.gif"> 刪除</a>
-    <A href="/student/work/content/edit/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}"><img src="/static/images/edit.gif"> 修改</a>
+    <A href="/student/work/content/edit/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}"><img src="/static/images/edit.gif"> 修改</a>({{history|length}})
       </div>  
   <div class="card-body">{{ work.text|memo|safe }}</div>
             {% endif %}
-</div>
+          </div>
 {% endfor %}
 {% endfor %}
 {% endif %}
+<BR>
+<a href="/student/work/content1/history/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/" class="btn btn-info" role="btn">修改記錄</a>
+

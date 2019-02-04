@@ -142,6 +142,8 @@ def submit(request, typing, lesson, index):
                             log.save()
                         obj.pic = ""
                         obj.save()
+                        obj.edit_id = obj.id
+                        obj.save()
                         return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))
                 elif types in ["21", "22"]: # 資料建模, 流程建模
                     form = SubmitF2Form(request.POST)
@@ -236,14 +238,15 @@ def submit(request, typing, lesson, index):
                 questions = []
             for qid in range(1, len(questions)+1):
                 works = list(filter(lambda w: w.question_id==qid, works_pool))
-                if len(works) > 0:
-                    contents = Science1Content.objects.filter(work_id=works[0].id, edit_old=False, deleted=False).order_by("id")
-                    if len(contents)>0:
-                        contents1.append([contents])
-                    else:
-                        contents1.append([[]])
-                else:
-                    contents1.append([[]])
+                content_list = []
+                for work in works:
+                    contents = Science1Content.objects.filter(work_id=work.id, edit_old=False, deleted=False)
+                    history_list = []
+                    for content in contents:
+                        history = Science1Content.objects.filter(work_id=work.id, edit_id=content.edit_id, edit_old=True, deleted=False).order_by("-id")
+                        history_list.append([content, history])
+                    content_list.append([work, history_list])
+                contents1.append([works, content_list])
             works3 = Science3Work.objects.filter(student_id=request.user.id, index=index).order_by("id")
             work3_ids = [work.id for work in works3]
             if works3.exists():
@@ -269,7 +272,7 @@ def submit(request, typing, lesson, index):
             except ObjectDoesNotExist:
                 flow = Science2Json(student_id=request.user.id, index=index, model_type=1)
             questions = Science1Question.objects.filter(work_id=index)
-            return render(request, 'student/submit.html', {'form':form, 'assignment': assignment, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow})
+            return render(request, 'student/submit.html', {'form':form, 'work_id':works[0].id, 'assignment': assignment, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow})
 
     return render(request, 'student/submit.html', {'form':form, 'assignment': assignment, 'typing':typing, 'lesson': lesson, 'lesson_id':lesson, 'index':index, 'work_dict':work_dict})
 
@@ -283,8 +286,9 @@ def content_edit(request, types, typing, lesson, index, question_id, content_id)
             obj.edit_old = True
             obj.save()
             obj.id = None
-            obj.edit_old = False
+            obj.edit_old = False         
             obj.text = request.POST['text']
+            obj.publication_date = timezone.now()  
             obj.save()
         except ObjectDoesNotExist:
             pass
@@ -311,3 +315,18 @@ def content_delete(request, types, typing, lesson, index, question_id, content_i
         log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+str(question_id)+'>刪除圖片')
         log.save()
     return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))
+
+def content1_history(request, typing, lesson, index, question_id):
+    contents1 = [[]]
+    works_pool = Science1Work.objects.filter(student_id=request.user.id, index=index).order_by("-id")
+    works = list(filter(lambda w: w.question_id==question_id, works_pool))
+    content_list = []
+    for work in works:
+        contents = Science1Content.objects.filter(work_id=work.id, edit_old=False)
+        history_list = []
+        for content in contents:
+            history = Science1Content.objects.filter(work_id=work.id, edit_id=content.edit_id, edit_old=True).order_by("-id")
+            history_list.append([content, history])
+        content_list.append([work, history_list])
+    contents1.append([works, content_list])
+    return render(request, 'student/content1_history.html', {'contents1':contents1, 'q_index':question_id})

@@ -21,7 +21,7 @@ class SubmitF1Form(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SubmitF1Form, self).__init__(*args, **kwargs)
-        self.fields['work_id'].required = False
+        self.fields['work_id'].required = True
         self.fields['types'].required = False
         self.fields['text'].required = False
         self.fields['pic'].required = False
