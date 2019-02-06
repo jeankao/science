@@ -13,6 +13,7 @@ from django.core.files.storage import FileSystemStorage
 from uuid import uuid4
 from wsgiref.util import FileWrapper
 from binascii import a2b_base64
+from django.utils import timezone
 import os
 
 # 判斷是否為授課教師
