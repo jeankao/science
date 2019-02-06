@@ -285,12 +285,14 @@ def content_edit(request, types, typing, lesson, index, question_id, content_id,
         try:
             obj = Science1Content.objects.get(id=x)
             obj.edit_old = True
+            #obj.publication_date = request.POST['content_date']
             obj.save()
             content = Science1Content()
             content.work_id = obj.work_id
             content.types = obj.types
             content.text = request.POST['text']
             content.edit_id = obj.edit_id
+            content.publication_date = timezone.now()
             content.save()
         except ObjectDoesNotExist:
             pass

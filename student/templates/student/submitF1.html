@@ -60,7 +60,7 @@
       </div>
    <div class="card-body"><img src="/static/upload/{{ work.picname }}" style="max-width:900px"></div>                      
               {% elif work.types == 11 %}
-  <div class="card-header"><button type="button" class="btn btn-default">{{forloop.counter}}</button> {% if history|length > 0 %}{{history.0.publication_date}}{% else %}{{work.publication_date}}{% endif %} --
+  <div class="card-header"><button type="button" class="btn btn-default">{{forloop.counter}}</button> {{work.publication_date}} --
     {% if user_id == request.user.id %}
     <A href="/student/work/content/delete/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}/{{classroom_id}}" onclick="return confirm('確定要刪除嗎?')"><img src="/static/images/delete.gif"> 刪除</a>
     <A href="/student/work/content/edit/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}/{{classroom_id}}"><img src="/static/images/edit.gif"> 
