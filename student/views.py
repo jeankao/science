@@ -245,7 +245,7 @@ def submit(request, classroom_id, typing, lesson, index, user_id):
                 if len(works)>0:
                     work_id = works[0].id
                 else:
-                    work_id = works_pool
+                    work_id = 0
                 content_list = []
                 for work in works:
                     contents = Science1Content.objects.filter(work_id=work.id, edit_old=False, deleted=False)
@@ -275,8 +275,6 @@ def submit(request, classroom_id, typing, lesson, index, user_id):
                 flow = Science2Json(student_id=user_id, index=index, model_type=1)
             questions = Science1Question.objects.filter(work_id=index)
             return render(request, 'student/submit.html', {'user_id': user_id, 'form':form, 'work_id':work_id, 'assignment': assignment, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow, 'classroom_id':classroom_id})
-
-    return render(request, 'student/submit.html', {'user_id': user_id,'form':form, 'assignment': assignment, 'typing':typing, 'lesson': lesson, 'lesson_id':lesson, 'index':index, 'work_dict':work_dict, 'classroom_id':classroom_id})
 
 
 def content_edit(request, types, typing, lesson, index, question_id, content_id, classroom_id):
