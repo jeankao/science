@@ -54,14 +54,20 @@
 <div class="card card-default"> 
               {% if work.types == 12 %}
   <div class="card-header"><button type="button" class="btn btn-default">{{forloop.counter}}</button> {{work.publication_date}} --
-    <A href="/student/work/content/delete/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}" onclick="return confirm('確定要刪除嗎?')"><img src="/static/images/delete.gif"> 刪除</a>
+    {% if user_id == request.user.id %}
+    <A href="/student/work/content/delete/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}/{{classroom_id}}" onclick="return confirm('確定要刪除嗎?')"><img src="/static/images/delete.gif"> 刪除</a>
+    {% endif %}
       </div>
    <div class="card-body"><img src="/static/upload/{{ work.picname }}" style="max-width:900px"></div>                      
               {% elif work.types == 11 %}
   <div class="card-header"><button type="button" class="btn btn-default">{{forloop.counter}}</button> {% if history %}{{history.0.publication_date}}{% else %}{{work.publication_date}}{% endif %} --
-    <A href="/student/work/content/delete/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}" onclick="return confirm('確定要刪除嗎?')"><img src="/static/images/delete.gif"> 刪除</a>
-    <A href="/student/work/content/edit/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}"><img src="/static/images/edit.gif"> 修改</a>({{history|length}})
-      </div>  
+    {% if user_id == request.user.id %}
+    <A href="/student/work/content/delete/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}/{{classroom_id}}" onclick="return confirm('確定要刪除嗎?')"><img src="/static/images/delete.gif"> 刪除</a>
+    <A href="/student/work/content/edit/{{work.types}}/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{work.id}}/{{classroom_id}}"><img src="/static/images/edit.gif"> 
+      {% endif %}     
+      修改</a>({{history|length}})
+
+    </div>  
   <div class="card-body">{{ work.text|memo|safe }}</div>
             {% endif %}
           </div>
@@ -69,5 +75,5 @@
 {% endfor %}
 {% endif %}
 <BR>
-<a href="/student/work/content1/history/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/" class="btn btn-info" role="btn">修改記錄</a>
+<a href="/student/work/content1/history/{{typing}}/{{lesson}}/{{index}}/{{q_index}}/{{user_id}}" class="btn btn-info" role="btn">修改記錄</a>
 

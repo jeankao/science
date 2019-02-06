@@ -274,12 +274,12 @@ def submit(request, classroom_id, typing, lesson, index, user_id):
             except ObjectDoesNotExist:
                 flow = Science2Json(student_id=user_id, index=index, model_type=1)
             questions = Science1Question.objects.filter(work_id=index)
-            return render(request, 'student/submit.html', {'user_id': user_id, 'form':form, 'work_id':work_id, 'assignment': assignment, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow})
+            return render(request, 'student/submit.html', {'user_id': user_id, 'form':form, 'work_id':work_id, 'assignment': assignment, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow, 'classroom_id':classroom_id})
 
-    return render(request, 'student/submit.html', {'user_id': user_id,'form':form, 'assignment': assignment, 'typing':typing, 'lesson': lesson, 'lesson_id':lesson, 'index':index, 'work_dict':work_dict})
+    return render(request, 'student/submit.html', {'user_id': user_id,'form':form, 'assignment': assignment, 'typing':typing, 'lesson': lesson, 'lesson_id':lesson, 'index':index, 'work_dict':work_dict, 'classroom_id':classroom_id})
 
 
-def content_edit(request, types, typing, lesson, index, question_id, content_id):
+def content_edit(request, types, typing, lesson, index, question_id, content_id, classroom_id):
     assignment = TWork.objects.get(id=index)
     if request.method == 'POST':
         x = request.POST['content_id']
@@ -297,12 +297,12 @@ def content_edit(request, types, typing, lesson, index, question_id, content_id)
         # 記錄事件
         log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+str(question_id)+'>修改文字')
         log.save()
-        return redirect("/student/work/submit/1/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))
+        return redirect("/student/work/submit/"+str(classroom_id)+"/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/"+str(request.user.id) + "/#question"+str(question_id))
     else:
         instance = Science1Content.objects.get(id=content_id)
         return render(request, 'student/submitF1E.html', {'instance':instance, 'q_index':question_id})
 
-def content_delete(request, types, typing, lesson, index, question_id, content_id):
+def content_delete(request, types, typing, lesson, index, question_id, content_id, classroom_id):
   assignment = TWork.objects.get(id=index)
   if types == 11 or types == 12:
     instance = Science1Content.objects.get(id=content_id)
@@ -316,11 +316,12 @@ def content_delete(request, types, typing, lesson, index, question_id, content_i
         # 記錄事件
         log = Log(user_id=request.user.id, event='<'+assignment.title+'>現象描述<'+str(question_id)+'>刪除圖片')
         log.save()
-    return redirect("/student/work/submit/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/#question"+str(question_id))
+        
+    return redirect("/student/work/submit/"+str(classroom_id)+"/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/"+str(request.user.id) + "/#question"+str(question_id))
 
-def content1_history(request, typing, lesson, index, question_id):
+def content1_history(request, typing, lesson, index, question_id, user_id):
     contents1 = [[]]
-    works_pool = Science1Work.objects.filter(student_id=request.user.id, index=index).order_by("-id")
+    works_pool = Science1Work.objects.filter(student_id=user_id, index=index).order_by("-id")
     works = list(filter(lambda w: w.question_id==question_id, works_pool))
     content_list = []
     for work in works:
