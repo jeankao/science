@@ -13,12 +13,12 @@
   <td>{{classroom.name}}</td>
   <td>{{classroom.password}}</td>
   <td>
-    <a href="/teacher/classroom/{{classroom.id}}/update" role="button" class="btn btn-outline-success">修改</a>
-    <a href="/student/classroom/{{classroom.id}}/classmate" role="button" class="btn btn-outline-success">學生</a>
-    <a href="/teacher/classroom/assistant/{{classroom.id}}" role="button" class="btn btn-outline-success">助教</a>     
-    <a href="/teacher/announce/{{classroom.id}}" role="button" class="btn btn-outline-success">公告</a> 
-    <a href="/teacher/work/{{classroom.lesson}}/{{classroom.id}}" role="button" class="btn btn-outline-success">作業</a>              
-    <a href="/teacher/log/{{classroom.id}}" role="button" class="btn btn-outline-success">記錄</a>              
+    <a href="/teacher/classroom/{{classroom.id}}/update" role="button" class="btn btn-outline-success"> <i class="fa fa-lightbulb-o" aria-hidden="true"></i> 修改</a>
+    <a href="/student/classroom/{{classroom.id}}/classmate" role="button" class="btn btn-outline-success"> <i class="fa fa-meh-o" aria-hidden="true"></i> 學生</a>
+    <a href="/teacher/classroom/assistant/{{classroom.id}}" role="button" class="btn btn-outline-success"> <i class="fa fa-meh-o" aria-hidden="true"></i> 助教</a>     
+    <a href="/teacher/announce/{{classroom.id}}" role="button" class="btn btn-outline-success"> <i class="fa fa-bullhorn" aria-hidden="true"></i> 公告</a> 
+    <a href="/teacher/work/{{classroom.lesson}}/{{classroom.id}}" role="button" class="btn btn-outline-success"> <i class="fa fa-heart-o" aria-hidden="true"></i> 作業</a>              
+    <a href="/teacher/log/{{classroom.id}}" role="button" class="btn btn-outline-success"> <i class="fa fa-hourglass-o" aria-hidden="true"></i>  記錄</a>              
   </td>
   </tr>
 {% endfor %}

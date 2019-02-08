@@ -6,6 +6,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <!-- 引用 Bootstrap CSS -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.3/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
@@ -31,26 +32,26 @@
     <div class="d-flex flex-grow-1">
         <ul class="navbar-nav">
     <li class="nav-item">
-      <a class="nav-link" href="/">首頁</a>
+      <a class="nav-link" href="/"> <i class="fa fa-home" aria-hidden="true"></i> 首頁</a>
     </li>
     {% if request.user.is_authenticated %}		  
     <li class="nav-item">
-      <a class="nav-link" href="/account/dashboard">訊息{% if request.user.id|unread > 0 %}({{request.user.id|unread}}){% endif %}</a>
+      <a class="nav-link" href="/account/dashboard"> <i class="fa fa-envelope" aria-hidden="true"></i> 訊息{% if request.user.id|unread > 0 %}({{request.user.id|unread}}){% endif %}</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="/student/classroom">班級</a>
+      <a class="nav-link" href="/student/classroom"> <i class="fa fa-users" aria-hidden="true"></i> 班級</a>
     </li>
 	{% if request.user.id|assistant %}
-	<li><a class="nav-link" href="/teacher/assistant">助教</a></li>
+	<li><a class="nav-link" href="/teacher/assistant"> <i class="fa fa-user-secret" aria-hidden="true"></i> 助教</a></li>
     {% endif %}		
 	{% if request.user|has_group:"teacher" %}
     <li class="nav-item">
-      <a class="nav-link" href="/teacher/classroom">教師</a>
+      <a class="nav-link" href="/teacher/classroom"> <i class="fa fa-users" aria-hidden="true"></i> 教師</a>
     </li>	
 	{% endif %}
     {% if request.user.is_superuser %}	
     <li class="nav-item">
-      <a class="nav-link" href="/account/user">帳號</a>
+      <a class="nav-link" href="/account/user"> <i class="fa fa-cogs" aria-hidden="true"></i> 帳號</a>
     {% endif %}	  
     </li>
 	{% endif %}

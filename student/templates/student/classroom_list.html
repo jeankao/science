@@ -11,9 +11,9 @@
   <tr>
   <td>{{classroom.name}}</td>
   <td>
-    <a href="/student/classroom/{{enroll.id}}/seat" role="btn" class="btn btn-outline-success">座號</a>
-    <a href="/student/classroom/{{classroom.id}}/classmate" role="btn" class="btn btn-outline-success">同學</a>
-    <a href="/student/work/1/{{classroom.lesson}}/{{classroom.id}}" role="button" class="btn btn-outline-success">作業</a>
+    <a href="/student/classroom/{{enroll.id}}/seat" role="btn" class="btn btn-outline-success"> <i class="fa fa-bell-o" aria-hidden="true"></i> 座號</a>
+    <a href="/student/classroom/{{classroom.id}}/classmate" role="btn" class="btn btn-outline-success"> <i class="fa fa-flag-o" aria-hidden="true"></i> 同學</a>
+    <a href="/student/work/1/{{classroom.lesson}}/{{classroom.id}}" role="button" class="btn btn-outline-success"> <i class="fa fa-heart-o" aria-hidden="true"></i> 作業</a>
   </td>
   </tr>
 {% endfor %}
