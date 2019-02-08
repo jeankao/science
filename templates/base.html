@@ -46,7 +46,7 @@
     {% endif %}		
 	{% if request.user|has_group:"teacher" %}
     <li class="nav-item">
-      <a class="nav-link" href="/teacher/classroom"> <i class="fa fa-users" aria-hidden="true"></i> 教師</a>
+      <a class="nav-link" href="/teacher/classroom"> <i class="fa fa-user" aria-hidden="true"></i> 教師</a>
     </li>	
 	{% endif %}
     {% if request.user.is_superuser %}	
