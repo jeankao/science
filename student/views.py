@@ -249,7 +249,7 @@ def submit(request, classroom_id, typing, lesson, index, user_id):
                     work_id = 0
                 content_list = []
                 for work in works:
-                    contents = Science1Content.objects.filter(work_id=work.id, edit_old=False, deleted=False)
+                    contents = Science1Content.objects.filter(work_id=work.id, edit_old=False, deleted=False).order_by("publication_date_old")
                     history_list = []
                     for content in contents:
                         history = Science1Content.objects.filter(work_id=work.id, edit_id=content.edit_id, edit_old=True, deleted=False).order_by("-id")
@@ -292,6 +292,7 @@ def content_edit(request, types, typing, lesson, index, question_id, content_id,
             content.types = obj.types
             content.text = request.POST['text']
             content.edit_id = obj.edit_id
+            content.publication_date_old = obj.publication_date_old            
             content.publication_date = timezone.now()
             content.save()
         except ObjectDoesNotExist:

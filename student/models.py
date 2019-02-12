@@ -95,7 +95,8 @@ class Science1Content(models.Model):
     deleted = models.BooleanField(default=False)
     edit_old = models.BooleanField(default=False)
     edit_id = models.IntegerField(default=0)
-    publication_date = models.DateTimeField(default=timezone.now)    
+    publication_date = models.DateTimeField(default=timezone.now)
+    publication_date_old = models.DateTimeField(default=timezone.now)    
 
 #Science4解釋
 class Science4Work(models.Model):
