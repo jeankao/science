@@ -118,9 +118,7 @@ def submit(request, classroom_id, typing, lesson, index, user_id):
     work_dict = dict(((int(work.index), [work, WorkFile.objects.filter(work_id=work.id).order_by("-id")]) for work in Work.objects.filter(typing=typing, lesson_id=lesson, user_id=user_id)))
     assignment = TWork.objects.get(id=index)
 
-    if lesson == 1:
-        if request.method == 'POST':
-            if typing == 1:
+    if request.method == 'POST':
                 types = request.POST.get('types')
                 question_id = request.POST.get('q_index')
                 if types == "11" or types == "12":
@@ -155,6 +153,7 @@ def submit(request, classroom_id, typing, lesson, index, user_id):
                         obj.edit_id = obj.id
                         obj.save()
                         return redirect("/student/work/submit/"+str(classroom_id)+"/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/"+str(user_id)+"/#question"+str(question_id))
+                        #return redirect("/")
                 elif types in ["21", "22"]: # 資料建模, 流程建模
                     form = SubmitF2Form(request.POST)
                     model_type = int(types == "22")
@@ -232,7 +231,8 @@ def submit(request, classroom_id, typing, lesson, index, user_id):
                         log = Log(user_id=user_id, event='<'+assignment.title+'>觀察與除錯:新增錯誤')
                         log.save()
                         return redirect("/student/work/submit/"+str(classroom_id)+"/"+str(typing)+"/"+str(lesson)+"/"+str(index)+"/"+str(user_id)+"/#tab4")
-        else:
+    else:
+            work_id = 0
             if not is_teacher(request.user, classroom_id) and not user_id == request.user.id:
                 return redirect("/")
             contents1 = [[]]
@@ -276,7 +276,7 @@ def submit(request, classroom_id, typing, lesson, index, user_id):
                 flow = Science2Json(student_id=user_id, index=index, model_type=1)
             questions = Science1Question.objects.filter(work_id=index)
             return render(request, 'student/submit.html', {'user_id': user_id, 'form':form, 'work_id':work_id, 'assignment': assignment, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow, 'classroom_id':classroom_id})
-
+    return redirect("/")
 
 def content_edit(request, types, typing, lesson, index, question_id, content_id, classroom_id):
     assignment = TWork.objects.get(id=index)
