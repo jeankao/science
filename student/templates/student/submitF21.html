@@ -10,12 +10,12 @@
   </div>
   <div class="card-header">
     <button class="btn btn-outline-warning btn-sm" id="new-var" data-type="var" data-toggle="modal" data-target="#modal-new-var"
-      data-class="btn-warning" data-pattern="[A-Z_a-z][A-Za-z_0-9]*">一般變數 +</button>
+      data-class="btn-warning" data-pattern="^[A-Z_a-z][A-Za-z_0-9]*$">一般變數 +</button>
     <ul class="expr-item-list" id="var-list"></ul>
   </div>
   <div class="card-header">
     <button class="btn btn-outline-danger btn-sm" id="new-arr" data-type="arr" data-toggle="modal" data-target="#modal-new-array"
-      data-class="btn-danger" data-pattern="[A-Z_a-z][A-Za-z_0-9]*">陣列變數 +</button>
+      data-class="btn-danger" data-pattern="^[A-Z_a-z][A-Za-z_0-9]*$">陣列變數 +</button>
     <ul id="arr-list" class="expr-arr-list"></ul>
   </div>
   <div class="card-header">
@@ -69,19 +69,21 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title" id="exampleModalLabel">新增變數</div>
+        <div class="modal-title" id="new-var-title">新增變數</div>
       </div>
       <div class="modal-body">
-        <form id="new-var-form form-inline">
+        <div id="new-var-form">
           <div class="form-group">
             <label for="">名稱</label>
-            <input type="text" class="form-control" id="varName" />
+            <input type="text" class="form-control" id="varName" pattern="^[A-Z_a-z][A-Za-z_0-9]*$" required/>
+            <div class="invalid-feedback">不合法的變數名稱：僅允許底線、大小寫英文字母、數字，請勿使用中文、空白、其他特殊符號為變數命名</div>
           </div>
-        </form>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
         <button type="button" class="btn btn-primary" id="new-var-ok">新增</button>
+        <button type="button" class="btn btn-primary d-none" id="edit-var-ok">修改</button>
       </div>
     </div>
   </div>
@@ -113,7 +115,8 @@
       <div class="modal-body">
         <div class="form-inline">
           <div class="form-group">
-            <input type="text" name="arr-name" id="arr-name" class="form-control mr-2" placeholder="陣列名稱" />
+            <input type="text" name="arr-name" id="arr-name" class="form-control mr-2" placeholder="陣列名稱" pattern="^[A-Z_a-z][A-Za-z_0-9]*$" required />
+            <div class="invalid-feedback">不合法的變數名稱：僅允許底線、大小寫英文字母、數字，請勿使用中文、空白、其他特殊符號為變數命名</div>
             <div class="form-check mr-2">
               <input type="checkbox" name="arr-2d" id="arr-2d" class="form-check-input">
               <label for="arr-2d" class="form-check-label">二維陣列</label>

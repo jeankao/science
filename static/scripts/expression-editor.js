@@ -103,13 +103,9 @@ $(function () {
     }
   }
 
-  // initFlowElements();
-
-
   //
   // expression editor
   //
-
   const CS_VAR = 'btn-warning',
         CS_ARR = 'btn-danger',
         CS_CONST = 'btn-success',
@@ -291,6 +287,7 @@ $(function () {
   });
 
   $modal_new_array.on('shown.bs.modal', function(event) {
+    $modal_new_array.removeClass('was-validated');
     $('#div-arr-rows').addClass('d-none');
     $('table input:text', $modal_new_array).val('0');
     $('#arr-2d').prop('checked', false).change();
@@ -375,6 +372,12 @@ $(function () {
         arr_rows = parseInt($('#arr-rows').val()),
         arr_cols = parseInt($('#arr-cols').val()),
         arr_is2d = $('#arr-2d').prop('checked');
+
+    if (!arr_name.match(/^[_A-Za-z][_A-Za-z0-9]*$/)) {
+      $('#modal-new-array').addClass('was-validated');
+      return;
+    }
+
     var expr = newExpr();
     var data = [];
     for (var row = 0; row < arr_rows; row++) {
@@ -409,7 +412,17 @@ $(function () {
     var title = button.text();
     var modal = $(this);
 
-    $('#varName').attr('pattern', button.data('pattern')).val('');
+    $('#new-var-form').removeClass('was-validated');
+
+    //$('#varName').attr('pattern', button.data('pattern')).val('');
+    if (!$('#new-var-ok').hasClass('d-none')) {
+      // 新增
+      $('#varName').val('');
+    } else {
+      console.log('Modify');
+    }
+
+    /*
     if (button.data('type') === 'num-const') {
       $('#varName').attr('type', 'number');
     } else {
@@ -423,20 +436,42 @@ $(function () {
 
     modal.data('type', button.data('type'));
     modal.data('class', button.data('class'));
-    modal.find('.modal-title').text(title);
-    $('#varName').val('').focus();
+    */
+    //modal.find('.modal-title').text(title);
+    $('#varName').focus();
+  });
+
+  $modal_new_var.on('hide.bs.modal', function(event) {
+    $('#new-var-ok').removeClass('d-none');
+    $('#edit-var-ok').addClass('d-none');
+    $('#new-var-title').text('新增變數');
   });
 
   function createNewVar() {
     var input = $('#varName').val().trim();
+    var form = $('#new-var-form');
+
+    if (!input.match(/^[_A-Za-z][_A-Za-z0-9]*$/)) {
+      form.addClass('was-validated');
+      return;
+    }
+
     if (input !== "") {
       newBlock('var', input, '#var-list').draggable({
         connectToSortable: '.expr-lhs, .expr-rhs, .expr-trash',
         helper: "clone",
         revert: "invalid",
+      }).click(function() {
+        $('#varName').val(input);
+        $('#new-var-ok').addClass('d-none');
+        $('#edit-var-ok').removeClass('d-none');
+        $('#new-var-title').text('修改變數');
+        $modal_new_var.modal('show');
+        console.log(this);
       });
       $('#varName').val('').focus();
     }
+    form.removeClass('was-validated');
   }
 
   $('#new-var-ok').click(createNewVar);
@@ -445,7 +480,9 @@ $(function () {
     if (event.which === 13) {
       event.preventDefault();
       createNewVar();
-      $('#varName').val('').focus();
+      if (!$('#new-var-form').hasClass('was-validated')) {
+        $('#varName').val('').focus();
+      }
     }
   });
 
@@ -598,7 +635,6 @@ $(function () {
     qFlow_switch(0 + $(this).text() - 1);
   });
 
-  //initExprElements();
   qData_switch(0);
   qFlow_switch(0);
 
