@@ -102,7 +102,7 @@ $(function () {
       _new_flow_item(item.type, item.content, '#flow-list', item.type < CS_LOOP ? '' : item.criteria);
     }
   }
-
+  //-------------------------------------------------------------------------
   //
   // expression editor
   //
@@ -165,6 +165,13 @@ $(function () {
       element.append(item);
     }
     element.appendTo($(target));
+    // Modify variable name
+    if (target === '#var-list') {
+      element.click(function(event) {
+        $('#varName').val($(this).text());
+        $modal_new_var.modal('show');
+      });
+    }
     return element;
   }
 
@@ -407,44 +414,22 @@ $(function () {
     return $(this).clone();
   }
 
-  $modal_new_var.on('shown.bs.modal', function (event) {
-    var button = $(event.relatedTarget);
-    var title = button.text();
-    var modal = $(this);
-
-    $('#new-var-form').removeClass('was-validated');
-
-    //$('#varName').attr('pattern', button.data('pattern')).val('');
-    if (!$('#new-var-ok').hasClass('d-none')) {
-      // 新增
+  $modal_new_var.on('show.bs.modal', function (event) {
+    if (event.relatedTarget === undefined) {
+      $('#new-var-ok').addClass('d-none');
+      $('#edit-var-ok').data('oVar', $('#varName').val()).removeClass('d-none');
+      $('#new-var-title').text('修改變數');
+    } else {
       $('#varName').val('');
-    } else {
-      console.log('Modify');
+      $('#new-var-ok').removeClass('d-none');
+      $('#edit-var-ok').addClass('d-none');
+      $('#new-var-title').text('新增變數');
     }
-
-    /*
-    if (button.data('type') === 'num-const') {
-      $('#varName').attr('type', 'number');
-    } else {
-      $('#varName').attr('type', '');
-    }
-    if (button.data('type') === 'arr') {
-      $('#form-group-elementNumber').css('display', 'block');
-    } else {
-      $('#form-group-elementNumber').css('display', 'none');
-    }
-
-    modal.data('type', button.data('type'));
-    modal.data('class', button.data('class'));
-    */
-    //modal.find('.modal-title').text(title);
-    $('#varName').focus();
+    $('#new-var-form').removeClass('was-validated');
   });
 
-  $modal_new_var.on('hide.bs.modal', function(event) {
-    $('#new-var-ok').removeClass('d-none');
-    $('#edit-var-ok').addClass('d-none');
-    $('#new-var-title').text('新增變數');
+  $modal_new_var.on('shown.bs.modal', function (event) {
+    $('#varName').focus();
   });
 
   function createNewVar() {
@@ -461,30 +446,31 @@ $(function () {
         connectToSortable: '.expr-lhs, .expr-rhs, .expr-trash',
         helper: "clone",
         revert: "invalid",
-      }).click(function() {
-        $('#varName').val(input);
-        $('#new-var-ok').addClass('d-none');
-        $('#edit-var-ok').removeClass('d-none');
-        $('#new-var-title').text('修改變數');
-        $modal_new_var.modal('show');
-        console.log(this);
       });
       $('#varName').val('').focus();
     }
     form.removeClass('was-validated');
   }
 
+  function updateVar() {
+    var oVar = $('#edit-var-ok').data('oVar');
+    var nVar = $('#varName').val().trim();
+    if (!nVar.match(/^[_A-Za-z][_A-Za-z0-9]*$/)) {
+      $('#new-var-form').addClass('was-validated');
+      return;
+    }
+    if (oVar !== nVar) {
+      $('#var-list .expr-item.var, #expr-list .expr-item.var').each(function(idx, item) {
+        if ($(item).text() === oVar)
+          $(item).text(nVar);
+      });
+      }
+    $modal_new_var.modal('hide');
+  }
+
   $('#new-var-ok').click(createNewVar);
 
-  $('#varName').on('keypress', function (event) {
-    if (event.which === 13) {
-      event.preventDefault();
-      createNewVar();
-      if (!$('#new-var-form').hasClass('was-validated')) {
-        $('#varName').val('').focus();
-      }
-    }
-  });
+  $('#edit-var-ok').click(updateVar);
 
   $('#new-exp').click(function() {
     newExpr(true);
