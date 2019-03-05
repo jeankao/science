@@ -11,6 +11,7 @@
       <td>
         {% for q in object.description|list_item:qtype.type %}
         <div class="input-group">
+          <button class="btn btn-sm btn-danger">X</button>
           <div class="input-group-prepend">
             <span class="input-group-text">{{ forloop.counter }}</span>
           </div>
@@ -37,4 +38,15 @@
 
 {% block footer_script %}
 <script src="/static/scripts/teacher-assignment.js"></script>
+<style>
+.input-group>button {
+  visibility: hidden;
+}
+.input-group:hover>button {
+  visibility: visible;
+}
+.input-group:only-of-type:hover>button {
+  visibility: hidden;
+}
+</style>
 {% endblock %}

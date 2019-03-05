@@ -23,3 +23,4 @@ ul.expr-item-list a:hover {text-decoration: none}
 .flow-item.input > .flow-content, .flow-item.output > .flow-content {background-color: silver}
 .flow-item.loop > .flow-content {background-color: steelblue}
 .flow-item.if > .flow-content {background-color: lemonchiffon}
+.flow-item.process > .flow-content {background-color: snow}

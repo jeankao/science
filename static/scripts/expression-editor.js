@@ -5,10 +5,21 @@ $(function () {
   const CS_INPUT = 0,
         CS_OUTPUT = 1,
         CS_LOOP = 2,
-        CS_IF = 3;
+        CS_IF = 3, 
+        CS_PROCESS = 4;
 
-  const FLOW_TYPE_LABEL = ["輸入", "輸出", "迴圈", "判斷"];
-  const FLOW_TYPE_CLASS = ["input", "output", "loop", "if"];
+  const FLOW_TYPE_LABEL = ["輸入", "輸出", "迴圈", "判斷", "處理"];
+  const FLOW_TYPE_CLASS = ["input", "output", "loop", "if", "process"];
+
+  const EXT_BLOCKS = [CS_LOOP, CS_IF];
+
+  const CLASS_TYPE = {
+    'input': CS_INPUT, 
+    'output': CS_OUTPUT, 
+    'loop': CS_LOOP, 
+    'if': CS_IF, 
+    'process': CS_PROCESS,
+  };
 
   $('.flow-container').sortable({
     placeholder: 'ui-state-highlight',
@@ -18,23 +29,22 @@ $(function () {
     var label = FLOW_TYPE_LABEL[type];
     var flow_type_class = FLOW_TYPE_CLASS[type];
     var flow_components;
-    if (type < CS_LOOP) {
+    if (!EXT_BLOCKS.includes(type)) {
       flow_components = '<textarea class="form-control" placeholder="請輸入流程說明文字...">'+content+'</textarea>';
     } else {
-      flow_components = '<div class="flow-group"><input type="text" class="form-control" placeholder="請輸入'+label+'條件..." value="'+criteria+'" /><div class="new-flow-op"><button class="btn btn-sm btn-dark disabled">新增流程 &gt; </button><div class="new-flow-type"><button class="btn btn-sm btn-outline-dark new-flow-input">輸入</button><button class="btn btn-sm btn-outline-dark new-flow-output">輸出</button><button class="btn btn-sm btn-outline-dark new-flow-loop">迴圈</button><button class="btn btn-sm btn-outline-dark new-flow-if">判斷</button></div></div><div class="flow-container"></div></div>';
+      flow_components = '<div class="flow-group"><input type="text" class="form-control" placeholder="請輸入'+label+'條件..." value="'+criteria+'" /><div class="new-flow-op"><button class="btn btn-sm btn-dark disabled">新增流程 &gt; </button><div class="new-flow-type"><button class="btn btn-sm btn-outline-dark new-flow-process">處理</button><button class="btn btn-sm btn-outline-dark new-flow-input">輸入</button><button class="btn btn-sm btn-outline-dark new-flow-output">輸出</button><button class="btn btn-sm btn-outline-dark new-flow-loop">迴圈</button><button class="btn btn-sm btn-outline-dark new-flow-if">判斷</button></div></div><div class="flow-container"></div></div>';
     }
     var flow = $('<div class="flow-item '+ flow_type_class +'"><div class="flow-content"><div class="label-op"><span class="badge badge-dark">'+label+'</span><span class="badge badge-danger flow-delete">刪除</span></div>'+ flow_components +'</div></div>');
     $(".flow-content", flow).prepend($('<span class="ui-icon ui-icon-arrow-4"></span>'));
     $('.flow-container', flow).sortable({
       placeholder: 'ui-state-highlight',
     });
-      //flow.appendTo('#flow-container');
-    if (type >= CS_LOOP) {
+    if (EXT_BLOCKS.includes(type)) {
       $('.new-flow-op', flow).click(_new_flow_item_handler);
       var my_container = $('.flow-container', flow);
       for (var i = 0; i < content.length; i++) {
         var item = content[i];
-        _new_flow_item(item.type, item.content, my_container, item.type < CS_LOOP ? '' : item.criteria);
+        _new_flow_item(item.type, item.content, my_container, EXT_BLOCKS.includes(item.type) ? item.criteria : '');
       }
     }
     flow.appendTo(container);
@@ -47,14 +57,11 @@ $(function () {
   function _new_flow_item_handler(event) {
     var container = $(this.nextElementSibling);
     var button = $(event.target);
-    if (button.hasClass('new-flow-input'))
-      _new_flow_item(CS_INPUT, '', container);
-    else if (button.hasClass('new-flow-output'))
-      _new_flow_item(CS_OUTPUT, '', container);
-    else if (button.hasClass('new-flow-loop'))
-      _new_flow_item(CS_LOOP, '', container);
-    else if (button.hasClass('new-flow-if'))
-      _new_flow_item(CS_IF, '', container);
+    var classtype = button.attr('class').match(/new-flow-([^ ]+)/);
+
+    if (classtype.length == 2) {
+      _new_flow_item(CLASS_TYPE[classtype[1]], '', container);
+    }
   }
 
   $('.new-flow-op').click(_new_flow_item_handler);
@@ -66,15 +73,17 @@ $(function () {
       var data = [];
       for (var i = 0; i < count; i++) {
         var item = $(children[i]);
-        if (item.hasClass('if') || item.hasClass('loop')) {
+        var classtype = item.attr('class').split(' ');
+        var type = CLASS_TYPE[classtype[1]];
+        if (EXT_BLOCKS.includes(type)) {
           data.push({
-            type: item.hasClass('if') ? CS_IF : CS_LOOP,
+            type: type,
             criteria: $('input[type="text"]', item).val(),
             content: _collect_flow_items($('.flow-container', item).get(0)),
           });
         } else {
           data.push({
-            type: item.hasClass('input') ? CS_INPUT : CS_OUTPUT,
+            type: type,
             content: $('textarea', item).val(),
           });
         }
@@ -99,7 +108,7 @@ $(function () {
 
     for (var i = 0; i < size; i++) {
       item = items[i];
-      _new_flow_item(item.type, item.content, '#flow-list', item.type < CS_LOOP ? '' : item.criteria);
+      _new_flow_item(item.type, item.content, '#flow-list', EXT_BLOCKS.includes(item.type) ? item.criteria : '');
     }
   }
   //-------------------------------------------------------------------------
