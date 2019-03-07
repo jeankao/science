@@ -2,6 +2,11 @@ from django import forms
 from django.contrib.auth.models import User, Group
 from account.models import Message
 
+# 使用者登入表單
+class LoginForm(forms.Form):
+    username = forms.CharField(label='帳號')
+    password = forms.CharField(label='密碼', widget=forms.PasswordInput)
+
 class UserRegistrationForm(forms.ModelForm): 
     error_messages = {
         'duplicate_username': ("此帳號已被使用")

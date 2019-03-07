@@ -499,11 +499,19 @@ class Science1QuestionAnswer(ListView):
     template_name = 'teacher/question_answer.html'
 
     def get_queryset(self):
+        questions = Science1Question.objects.filter(work_id=self.kwargs['work_id'])
+        if self.kwargs['q_id'] == 0:
+            if len(questions) > 0:
+                q_id = questions[0].id
+            else :
+                q_id = 0
+        else :
+            q_id = self.kwargs['q_id']
         enroll_pool = [enroll for enroll in Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'], seat__gt=0).order_by('seat')]
         student_ids = map(lambda a: a.student_id, enroll_pool)
-        work_pool = Science1Work.objects.filter(student_id__in=student_ids, question_id=self.kwargs['q_id'])
+        work_pool = Science1Work.objects.filter(student_id__in=student_ids, question_id=q_id)        
         work_ids = map(lambda a: a.id, work_pool)
-        content_pool = Science1Content.objects.filter(work_id__in=work_ids)
+        content_pool = Science1Content.objects.filter(work_id__in=work_ids)        
         queryset = []
         for enroll in enroll_pool:
             works = filter(lambda w: w.student_id==enroll.student_id, work_pool)
@@ -519,7 +527,19 @@ class Science1QuestionAnswer(ListView):
         context['classroom'] = Classroom.objects.get(id=self.kwargs['classroom_id'])
         context['lesson'] = self.kwargs['lesson']
         context['work_id'] = self.kwargs['work_id']
-        context['question'] = Science1Question.objects.get(id=self.kwargs['q_id'])
+        questions = Science1Question.objects.filter(work_id=self.kwargs['work_id'])
+        if self.kwargs['q_id'] == 0:
+            if len(questions) > 0:
+                q_id = questions[0].id
+            else :
+                q_id = 0
+        else :
+            q_id = self.kwargs['q_id']    
+        if q_id > 0 :    
+            context['question'] = Science1Question.objects.get(id=q_id)
+        else :
+            context['question'] = None
+        context['questions'] = questions
         return context
 
 #新增一個問題

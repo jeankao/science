@@ -18,6 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.shortcuts import render
 from django.views import generic
 from django.contrib.auth.models import User, Group
+from django.contrib.auth import authenticate, login
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -32,7 +33,7 @@ from django.views.generic import FormView, RedirectView
 from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from .forms import UserRegistrationForm, UserUpdateForm, UserPasswordForm, UserTeacherForm
+from .forms import *
 from student.models import *
 from account.models import *
 from account.forms import LineForm
@@ -62,7 +63,7 @@ def filename_browser(request, filename):
 
 class Login(FormView):
     success_url = '/account/dashboard'
-    form_class = AuthenticationForm
+    form_class = LoginForm
     template_name = "login.html"
 
     @method_decorator(sensitive_post_parameters('password'))
@@ -75,9 +76,14 @@ class Login(FormView):
         return super(Login, self).dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        auth_login(self.request, form.get_user())
-        if form.get_user().id == 1 and form.get_user().first_name == "":
-            user = User.objects.get(id=1)
+        username = form.cleaned_data['username']
+        password = form.cleaned_data['password']         
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            auth_login(self.request, user)
+        else :
+            return redirect("/account/login/")
+        if user.id == 1 and user.first_name == "":          
             user.first_name = "管理員"
             user.save()
           

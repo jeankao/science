@@ -5,13 +5,16 @@
     <tr>
         <td>名稱</td>
         <td>時間</td>
-        <td colspan=3>功能</td>
+        <td colspan=6>功能</td>
     </tr>
     {% for work in works %}
     <tr>
         <td><span class="badge badge-secondary">{{forloop.revcounter}}</span> <a href="/teacher/work/update/{{work.id}}/{{classroom.lesson}}/{{classroom.id}}">{{work.title}}</a></td>
         <td>{{work.time}}</td>
         <td><a href="/teacher/work/update/{{work.id}}/{{classroom.lesson}}/{{classroom.id}}">修改</a></td>
+        <td><a href="/teacher/work/question/answer/{{classroom.lesson}}/{{classroom.id}}/{{work.id}}/0/">現象</a></td>
+        <td><a href="">資料</a></td>
+        <td><a href="">流程</a></td>                        
         <td><a href="/teacher/work/score/{{classroom.lesson}}/{{classroom.id}}/{{work.id}}">評分</a></td>
         <td><a href="/student/work/memo/{{classroom.id}}/{{classroom.lesson}}/{{forloop.revcounter}}">心得</a></td>
     </tr>
