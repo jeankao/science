@@ -597,3 +597,48 @@ class WorkScoreList(ListView):
         context['lesson'] = self.kwargs['lesson']
         context['index'] = self.kwargs['index']
         return context
+
+class AssignmentSubmissions(ListView):
+    model = TWork
+    context_object_name = 'submissions'
+    template_name = 'teacher/assignment_submissions.html'
+
+    def get_queryset(self):
+        q_type = self.kwargs['type']
+        #q_id = self.kwargs['q_id']
+        assignment_id = self.kwargs['assignment_id']
+        students = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'], seat__gt=0).order_by('seat')
+        sids = [stu.student_id for stu in students]
+        submissions = []
+        if q_type == 1:
+            works = Science1Work.objects.filter(student_id__in=sids, index=assignment_id).values('id', 'question_id', 'student_id').order_by('id', 'question_id')
+            wids = [w['id'] for w in works]
+            work_pool = Science1Content.objects.filter(work_id__in=wids).values('work_id', 'types', 'text', 'picname', 'publication_date')
+            for sid in sids:
+                sworks = list(filter(lambda w: w['student_id'] == sid, works))                
+                data = {}
+                for sw in sworks:
+                    qid = 'q'+str(sw['question_id'])
+                    data[qid] = list(filter(lambda w: w['work_id'] == sw['id'], work_pool))
+                submissions.append({
+                    'student_id': sid, 
+                    'data': data,
+                })
+        elif q_type in [2, 3]:
+            data = Science2Json.objects.filter(student_id__in=sids, index=assignment_id, model_type=q_type-2).values('student_id', 'data')
+            for sid in sids:
+                sworks = list(filter(lambda w: w['student_id'] == sid, data))
+                submissions.append({
+                    'student_id': sid, 
+                    'data': sworks[0]['data'] if sworks else {},
+                })
+        return submissions
+    
+    def get_context_data(self, **kwargs):
+        typename = ['', 'qStatus', 'qData', 'qFlow']
+        ctx = super().get_context_data(**kwargs)
+        ctx['assignment'] = TWork.objects.get(id=self.kwargs['assignment_id'])
+        ctx['qlist'] = ctx['assignment'].description[typename[self.kwargs['type']]]
+        ctx['qtype'] = self.kwargs['type']
+        ctx['subtemplate'] = 'teacher/assignment_type{}.html'.format(ctx['qtype'])
+        return ctx

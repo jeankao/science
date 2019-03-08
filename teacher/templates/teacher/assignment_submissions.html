@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load tag %}
+
+{% block content %}
+  <h1>{{ assignment.title }}</h1>
+
+  <div id="qSwitch" class="btn-group mb-1" role="group" aria-label="切換問題">
+    {% for q in qlist %}
+    <button type="button" class="btn btn-light" data-qid="{{ forloop.counter0 }}">{{ forloop.counter }}</button>
+    {% endfor %}
+  </div>
+  <h2 id="qTitle"></h2>
+  {% for stuwork in submissions %}
+  <div class="card">
+    <div class="card-header">{{ stuwork.student_id|realname}}</div>
+    <div class="card-body">
+      {% for q in stuwork.data %}
+      <ul class="list-group {{q}}">
+        {% for item in stuwork.data|list_item:q %}
+        <li class="list-group-item">{% include subtemplate %}</li>
+        {% endfor %}
+      </ul>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+  <script>
+    var None = undefined;
+    var qList = {{ qlist|safe }};
+
+    function qSwitch(qid) {
+      $('#qTitle').text(qList[qid]);
+      $('#qSwitch>button[data-qid='+qid+']').addClass('active');
+      $('.card-body .list-group').addClass('d-none');
+      $('.q'+(qid+1)).removeClass('d-none');
+    }
+
+    qSwitch(0);
+
+    var qButtons = $('#qSwitch>button');
+    qButtons.click(function(event) {
+      qButtons.removeClass('active');
+      qSwitch($(this).data('qid'));
+    });
+  </script>
+{% endblock %}
