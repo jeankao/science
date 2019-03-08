@@ -289,7 +289,9 @@
 </div>
 
 <script>
-  var assignment = {{ assignment.description|safe }}
+  const False = false;
+  const None = undefined;
+  var assignment = {{ assignment.description|safe }};
   var exprdata = {{ expr.data|safe }};
   var flowdata = {{ flow.data|safe }};
 </script>

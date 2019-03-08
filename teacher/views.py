@@ -601,11 +601,9 @@ class WorkScoreList(ListView):
 class AssignmentSubmissions(ListView):
     model = TWork
     context_object_name = 'submissions'
-    template_name = 'teacher/assignment_submissions.html'
 
     def get_queryset(self):
         q_type = self.kwargs['type']
-        #q_id = self.kwargs['q_id']
         assignment_id = self.kwargs['assignment_id']
         students = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'], seat__gt=0).order_by('seat')
         sids = [stu.student_id for stu in students]
@@ -642,3 +640,7 @@ class AssignmentSubmissions(ListView):
         ctx['qtype'] = self.kwargs['type']
         ctx['subtemplate'] = 'teacher/assignment_type{}.html'.format(ctx['qtype'])
         return ctx
+
+    def get_template_names(self):
+        qtype = self.kwargs['type']
+        return ['teacher/submission_list'+str(qtype)+'.html']

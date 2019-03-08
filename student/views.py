@@ -15,6 +15,7 @@ from wsgiref.util import FileWrapper
 from binascii import a2b_base64
 from django.utils import timezone
 import os
+import json as JSON
 
 # 判斷是否為授課教師
 def is_teacher(user, classroom_id):
@@ -169,7 +170,7 @@ def submit(request, classroom_id, typing, lesson, index, user_id):
                     json = Science2Json(index=index, student_id=request.user.id, model_type=model_type)
                 if 'q'+qid not in json.data:
                     json.data['q'+qid] = []
-                json.data['q'+qid].insert(0, {'expr': request.POST['jsonstr'], 'created': timezone.now()})
+                json.data['q'+qid].insert(0, {'expr': JSON.loads(request.POST['jsonstr']), 'created': timezone.now()})
                 json.save()
                 if types == "21":
                     # 記錄事件

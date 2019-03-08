@@ -1,0 +1,11 @@
+{% extends 'teacher/submission_list_base.html' %}
+{% load tag %}
+
+{% block item_content %}
+  <div class="list-group list-group-flush">
+    {% for expr in item.expr %}
+    <div class="d-flex list-group-item"><span class="badge badge-dark">{{ expr.type|flowType }}</span><div class="flex-fill">{{ expr }}</div></div>
+    {% endfor %}
+  </div>
+  <div class="card-text"><small class="badge badge-light float-right">{{ item.created|toDate|date:"Y-m-d H:i:s" }}</small></div>
+{% endblock %}

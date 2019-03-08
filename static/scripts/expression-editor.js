@@ -99,7 +99,7 @@ $(function () {
     var curr_qid = $('#flow-form input[name="qid"]').val();
     var flowjson;
     try {
-      flowjson = JSON.parse(flowdata['q'+curr_qid][hid].expr);
+      flowjson = flowdata['q'+curr_qid][hid].expr;
     } catch (error) {
       flowjson =[];
     }
@@ -513,7 +513,7 @@ $(function () {
     var curr_qid = $('#expr-form input[name="qid"]').val();
     var exprjson;
     try {
-      exprjson = JSON.parse(exprdata['q'+curr_qid][hid].expr);
+      exprjson = exprdata['q'+curr_qid][hid].expr;
     } catch (error) {
       exprjson = {
         'vars': [],

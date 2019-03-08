@@ -12,12 +12,14 @@
   <h2 id="qTitle"></h2>
   {% for stuwork in submissions %}
   <div class="card">
-    <div class="card-header">{{ stuwork.student_id|realname}}</div>
+    <div class="card-header">
+      {{ stuwork.student_id|realname }}
+    </div>
     <div class="card-body">
       {% for q in stuwork.data %}
       <ul class="list-group {{q}}">
         {% for item in stuwork.data|list_item:q %}
-        <li class="list-group-item">{% include subtemplate %}</li>
+        <li class="list-group-item">{% block item_content %}{% endblock %}</li>
         {% endfor %}
       </ul>
       {% endfor %}
@@ -31,7 +33,7 @@
     function qSwitch(qid) {
       $('#qTitle').text(qList[qid]);
       $('#qSwitch>button[data-qid='+qid+']').addClass('active');
-      $('.card-body .list-group').addClass('d-none');
+      $('.card-body>.list-group, .data-count').addClass('d-none');
       $('.q'+(qid+1)).removeClass('d-none');
     }
 

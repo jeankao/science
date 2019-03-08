@@ -1,0 +1,10 @@
+{% extends 'teacher/submission_list_base.html' %}
+
+{% block item_content %}
+  {% if item.types == 11 %}
+    {{ item.text|linebreaks }}
+  {% else %}
+    <img src="/static/upload/{{ item.picname }}" class="mw-100" alt="" />
+  {% endif %}
+  <div class="card-text"><small class="badge badge-light float-right">{{ item.publication_date|date:"Y-m-d H:i:s" }}</small></div>
+{% endblock %}

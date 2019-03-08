@@ -96,12 +96,13 @@ def memo(text):
   return memo
 
 @register.filter()
-def fromJson(str):
-    return json.loads(str)
-
-@register.filter()
 def toDate(str):
     #2019-03-08T01:09:27.108Z
     utc = timezone.datetime.strptime(str, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
     return timezone.localtime(utc)
     return datetime.datetime.strptime(str, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+@register.filter()
+def flowType(tid):
+    typeStr = ["輸入", "輸出", "迴圈", "判斷", "處理"]
+    return typeStr[tid]
