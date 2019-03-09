@@ -627,9 +627,9 @@ class AssignmentSubmissions(ListView):
                     'data': data,
                 })
         elif q_type in [2, 3]:
-            data = Science2Json.objects.filter(student_id__in=sids, index=assignment_id, model_type=q_type-2).values('student_id', 'data')
+            data2 = Science2Json.objects.filter(student_id__in=sids, index=assignment_id, model_type=q_type-2).values('student_id', 'data')
             for sid in sids:
-                sworks = list(filter(lambda w: w['student_id'] == sid, data))
+                sworks = list(filter(lambda w: w['student_id'] == sid, data2))
                 data = {}
                 if sworks:
                     for q in sworks[0]['data']:
