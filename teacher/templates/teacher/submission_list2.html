@@ -5,5 +5,5 @@
   {% for expr in item.expr.exprs %}
   <div>{{ expr }}</div>
   {% endfor %}
-  <div class="card-text"><small class="badge badge-light float-right">{{ item.created|toDate|date:"Y-m-d H:i:s" }}</small></div>
+  <div class="card-text"><small class="badge badge-secondary mt-2 float-right">{{ item.created|toDate|date:"Y-m-d H:i:s" }}</small></div>
 {% endblock %}

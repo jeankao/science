@@ -3,3 +3,5 @@ from .models import *
 # Register your models here.
 admin.site.register(Science1Content)
 admin.site.register(Science1Work)
+admin.site.register(Work)
+admin.site.register(WorkFile)

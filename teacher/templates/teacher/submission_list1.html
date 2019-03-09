@@ -6,5 +6,5 @@
   {% else %}
     <img src="/static/upload/{{ item.picname }}" class="mw-100" alt="" />
   {% endif %}
-  <div class="card-text"><small class="badge badge-light float-right">{{ item.publication_date|date:"Y-m-d H:i:s" }}</small></div>
+  <div class="card-text"><small class="badge badge-secondary mt-2 float-right">{{ item.publication_date|date:"Y-m-d H:i:s" }}</small></div>
 {% endblock %}

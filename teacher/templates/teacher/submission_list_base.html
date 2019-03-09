@@ -6,24 +6,27 @@
 
   <div id="qSwitch" class="btn-group mb-1" role="group" aria-label="切換問題">
     {% for q in qlist %}
-    <button type="button" class="btn btn-light" data-qid="{{ forloop.counter0 }}">{{ forloop.counter }}</button>
+    <button type="button" class="btn" data-qid="{{ forloop.counter0 }}">{{ forloop.counter }}</button>
     {% endfor %}
   </div>
   <h2 id="qTitle"></h2>
   {% for stuwork in submissions %}
   <div class="card">
-    <div class="card-header">
-      {{ stuwork.student_id|realname }}
+    <div class="card-header d-flex justify-content-between">
+      <div>{{ stuwork.student_id|realname }}</div>
+      <small>有
+      {% for q in qidx %}
+      <span class="data-count {{q}}">{{stuwork.data|list_item:q|list_item:'count'|default:0}}</span>
+      {% endfor %} 筆上傳紀錄，僅顯示最新一筆
+      </small>
     </div>
-    <div class="card-body">
-      {% for q in stuwork.data %}
-      <ul class="list-group {{q}}">
-        {% for item in stuwork.data|list_item:q %}
-        <li class="list-group-item">{% block item_content %}{% endblock %}</li>
-        {% endfor %}
-      </ul>
-      {% endfor %}
+    {% for q in stuwork.data %}
+    <div class="card-body item-content {{q}}">
+      {% with item=stuwork.data|list_item:q|list_item:'latest' %}
+      {% block item_content %}{% endblock %}
+      {% endwith %}
     </div>
+    {% endfor %}
   </div>
   {% endfor %}
   <script>
@@ -32,8 +35,8 @@
 
     function qSwitch(qid) {
       $('#qTitle').text(qList[qid]);
-      $('#qSwitch>button[data-qid='+qid+']').addClass('active');
-      $('.card-body>.list-group, .data-count').addClass('d-none');
+      $('#qSwitch>button[data-qid='+qid+']').addClass('btn-primary');
+      $('.item-content, .data-count').addClass('d-none');
       $('.q'+(qid+1)).removeClass('d-none');
     }
 
@@ -41,8 +44,10 @@
 
     var qButtons = $('#qSwitch>button');
     qButtons.click(function(event) {
-      qButtons.removeClass('active');
-      qSwitch($(this).data('qid'));
+      if (!$(this).hasClass('btn-primary')) {
+        qButtons.removeClass('btn-primary');
+        qSwitch($(this).data('qid'));
+      }
     });
   </script>
 {% endblock %}

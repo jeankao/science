@@ -1,0 +1,14 @@
+{% load tag %}
+{% for expr in items %}
+<div class="d-flex flow-list expr-type{{expr.type}} shadow">
+  <span class="badge">{{ expr.type|flowType }}</span>
+  <div class="w-100 p-1">
+    {% if expr.type == 2 or expr.type == 3 %}
+    <div class="flow-criteria form-control shadow">{{ expr.criteria }}</div>
+    <div class="flow-content">{% include 'teacher/submission_item.html' with items=expr.content %}</div>
+    {% else %}
+    <div class="flow-content">{{ expr.content|linebreaksbr }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}

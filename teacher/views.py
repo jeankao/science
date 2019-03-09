@@ -611,13 +611,17 @@ class AssignmentSubmissions(ListView):
         if q_type == 1:
             works = Science1Work.objects.filter(student_id__in=sids, index=assignment_id).values('id', 'question_id', 'student_id').order_by('id', 'question_id')
             wids = [w['id'] for w in works]
-            work_pool = Science1Content.objects.filter(work_id__in=wids).values('work_id', 'types', 'text', 'picname', 'publication_date')
+            work_pool = Science1Content.objects.filter(work_id__in=wids, deleted=False, edit_old=False).values('work_id', 'types', 'text', 'picname', 'publication_date').order_by('-publication_date_old')
             for sid in sids:
                 sworks = list(filter(lambda w: w['student_id'] == sid, works))                
                 data = {}
                 for sw in sworks:
                     qid = 'q'+str(sw['question_id'])
-                    data[qid] = list(filter(lambda w: w['work_id'] == sw['id'], work_pool))
+                    items = list(filter(lambda w: w['work_id'] == sw['id'], work_pool))
+                    data[qid] = {
+                        'count': len(items), 
+                        'latest': items[0],
+                    }
                 submissions.append({
                     'student_id': sid, 
                     'data': data,
@@ -626,9 +630,17 @@ class AssignmentSubmissions(ListView):
             data = Science2Json.objects.filter(student_id__in=sids, index=assignment_id, model_type=q_type-2).values('student_id', 'data')
             for sid in sids:
                 sworks = list(filter(lambda w: w['student_id'] == sid, data))
+                data = {}
+                if sworks:
+                    for q in sworks[0]['data']:
+                        data[q] = {
+                            'count': len(sworks[0]['data'][q]),
+                            'latest': sworks[0]['data'][q][0],
+                        }
+
                 submissions.append({
                     'student_id': sid, 
-                    'data': sworks[0]['data'] if sworks else {},
+                    'data': data,
                 })
         return submissions
     
@@ -637,6 +649,7 @@ class AssignmentSubmissions(ListView):
         ctx = super().get_context_data(**kwargs)
         ctx['assignment'] = TWork.objects.get(id=self.kwargs['assignment_id'])
         ctx['qlist'] = ctx['assignment'].description[typename[self.kwargs['type']]]
+        ctx['qidx'] = list(map(lambda i: 'q'+str(i), range(1, len(ctx['qlist'])+1)))
         ctx['qtype'] = self.kwargs['type']
         ctx['subtemplate'] = 'teacher/assignment_type{}.html'.format(ctx['qtype'])
         return ctx

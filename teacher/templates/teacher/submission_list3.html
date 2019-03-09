@@ -2,10 +2,41 @@
 {% load tag %}
 
 {% block item_content %}
-  <div class="list-group list-group-flush">
-    {% for expr in item.expr %}
-    <div class="d-flex list-group-item"><span class="badge badge-dark">{{ expr.type|flowType }}</span><div class="flex-fill">{{ expr }}</div></div>
-    {% endfor %}
+  <div class="flow-list">
+    {% include 'teacher/submission_item.html' with items=item.expr only %}
   </div>
-  <div class="card-text"><small class="badge badge-light float-right">{{ item.created|toDate|date:"Y-m-d H:i:s" }}</small></div>
+  <div class="card-text"><small class="badge badge-secondary mt-2 float-right">{{ item.created|toDate|date:"Y-m-d H:i:s" }}</small></div>
+{% endblock %}
+
+{% block footer_script %}
+<style>
+.flow-list {
+  margin-bottom: 3pt;
+}
+.flow-criteria {
+  margin-bottom: 2pt;
+}
+.flow-content {
+
+}
+.expr-type2 > .badge{
+  background-color: steelblue;
+  color: white;
+}
+
+.expr-type3 > .badge{
+  background-color: lemonchiffon;
+  color: black;
+}
+
+.expr-type4 > .badge {
+  background-color: lightgreen;
+  color: black;
+}
+
+.expr-type0 > .badge, .expr-type1 > .badge {
+  background-color: lightgray;
+  color: black;
+}
+</style>
 {% endblock %}
