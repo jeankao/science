@@ -8,10 +8,14 @@ def migrate_expression(apps, schema_editor):
     Science2Json = apps.get_model("student", "Science2Json")
     items = Science2Json.objects.all()
     for item in items:
+        modified = False
         for q in item.data:
             for e in item.data[q]:
-                e['expr'] = json.loads(e['expr'])
-        item.save() 
+                if type(e['expr']) == type(str()):
+                    e['expr'] = json.loads(e['expr'])
+                    modified = True
+        if modified:
+            item.save()
 
 class Migration(migrations.Migration):
 
