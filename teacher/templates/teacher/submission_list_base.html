@@ -3,17 +3,18 @@
 
 {% block content %}
   <h1>{{ assignment.title }}</h1>
-
-  <div id="qSwitch" class="btn-group mb-1" role="group" aria-label="切換問題">
+  <div id="qSwitch" class="btn-group btn-group-sm mb-1" role="group" aria-label="切換問題">
+    <div class="btn btn-dark">切換問題 </div>
     {% for q in qlist %}
-    <button type="button" class="btn" data-qid="{{ forloop.counter0 }}">{{ forloop.counter }}</button>
+    <button type="button" class="btn btn" data-qid="{{ forloop.counter0 }}">{{ forloop.counter }}</button>
     {% endfor %}
   </div>
   <h2 id="qTitle"></h2>
+  {{ sworks }}
   {% for stuwork in submissions %}
   <div class="card">
     <div class="card-header d-flex justify-content-between">
-      <div>{{ stuwork.student_id|realname }}</div>
+      <div><span class="badge badge-secondary">{{ stuwork.stu.seat }}</span> {{ stuwork.stu.student_id|realname }}</div>
       <small>有
       {% for q in qidx %}
       <span class="data-count {{q}}">{{stuwork.data|list_item:q|list_item:'count'|default:0}}</span>

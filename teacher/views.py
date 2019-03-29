@@ -429,8 +429,8 @@ class WorkList(ListView):
 
 #新增一個作業
 qType = [
-    {'type': 'qStatus', 'label': '現象問題'}, 
-    {'type': 'qData', 'label': '資料建模問題'}, 
+    {'type': 'qStatus', 'label': '現象問題'},
+    {'type': 'qData', 'label': '資料建模問題'},
     {'type': 'qFlow', 'label': '流程建模問題'},
 ]
 
@@ -464,7 +464,7 @@ class WorkUpdate(UpdateView):
         context = super().get_context_data(**kwargs)
         context["qType"] = qType
         return context
-    
+
     def form_valid(self, form):
         self.object = form.save(commit=False)
         self.object.description = {'qStatus': self.request.POST.getlist('qStatus'), 'qData': self.request.POST.getlist('qData'), 'qFlow': self.request.POST.getlist('qFlow')}
@@ -509,9 +509,9 @@ class Science1QuestionAnswer(ListView):
             q_id = self.kwargs['q_id']
         enroll_pool = [enroll for enroll in Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'], seat__gt=0).order_by('seat')]
         student_ids = map(lambda a: a.student_id, enroll_pool)
-        work_pool = Science1Work.objects.filter(student_id__in=student_ids, question_id=q_id)        
+        work_pool = Science1Work.objects.filter(student_id__in=student_ids, question_id=q_id)
         work_ids = map(lambda a: a.id, work_pool)
-        content_pool = Science1Content.objects.filter(work_id__in=work_ids)        
+        content_pool = Science1Content.objects.filter(work_id__in=work_ids)
         queryset = []
         for enroll in enroll_pool:
             works = filter(lambda w: w.student_id==enroll.student_id, work_pool)
@@ -534,8 +534,8 @@ class Science1QuestionAnswer(ListView):
             else :
                 q_id = 0
         else :
-            q_id = self.kwargs['q_id']    
-        if q_id > 0 :    
+            q_id = self.kwargs['q_id']
+        if q_id > 0 :
             context['question'] = Science1Question.objects.get(id=q_id)
         else :
             context['question'] = None
@@ -572,7 +572,7 @@ class LogList(ListView):
 
     def get_queryset(self):
         enroll_pool = [enroll for enroll in Enroll.objects.filter(classroom_id=self.kwargs['classroom_id']).order_by('seat')]
-        student_ids = map(lambda a: a.student_id, enroll_pool)        
+        student_ids = map(lambda a: a.student_id, enroll_pool)
         queryset = Log.objects.filter(user_id__in=student_ids).order_by("-id")
         return queryset
 
@@ -605,30 +605,32 @@ class AssignmentSubmissions(ListView):
     def get_queryset(self):
         q_type = self.kwargs['type']
         assignment_id = self.kwargs['assignment_id']
-        students = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'], seat__gt=0).order_by('seat')
-        sids = [stu.student_id for stu in students]
+        students = Enroll.objects.filter(classroom_id=self.kwargs['classroom_id'], seat__gt=0).values('student_id', 'seat').order_by('seat')
+        sids = [stu['student_id'] for stu in students]
         submissions = []
         if q_type == 1:
             works = Science1Work.objects.filter(student_id__in=sids, index=assignment_id).values('id', 'question_id', 'student_id').order_by('id', 'question_id')
             wids = [w['id'] for w in works]
             work_pool = Science1Content.objects.filter(work_id__in=wids, deleted=False, edit_old=False).values('work_id', 'types', 'text', 'picname', 'publication_date').order_by('-publication_date_old')
-            for sid in sids:
-                sworks = list(filter(lambda w: w['student_id'] == sid, works))                
+            for stu in students:
+                sid = stu['student_id']
+                sworks = list(filter(lambda w: w['student_id'] == sid, works))
                 data = {}
                 for sw in sworks:
                     qid = 'q'+str(sw['question_id'])
                     items = list(filter(lambda w: w['work_id'] == sw['id'], work_pool))
                     data[qid] = {
-                        'count': len(items), 
+                        'count': len(items),
                         'latest': items[0],
                     }
                 submissions.append({
-                    'student_id': sid, 
+                    'stu': stu,
                     'data': data,
                 })
         elif q_type in [2, 3]:
             data2 = Science2Json.objects.filter(student_id__in=sids, index=assignment_id, model_type=q_type-2).values('student_id', 'data')
-            for sid in sids:
+            for stu in students:
+                sid = stu['student_id']
                 sworks = list(filter(lambda w: w['student_id'] == sid, data2))
                 data = {}
                 if sworks:
@@ -639,11 +641,11 @@ class AssignmentSubmissions(ListView):
                         }
 
                 submissions.append({
-                    'student_id': sid, 
+                    'stu': stu,
                     'data': data,
                 })
         return submissions
-    
+
     def get_context_data(self, **kwargs):
         typename = ['', 'qStatus', 'qData', 'qFlow']
         ctx = super().get_context_data(**kwargs)

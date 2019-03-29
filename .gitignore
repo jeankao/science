@@ -4,4 +4,6 @@
 __pycache__
 .vscode
 db.sqlite3
-static/upload/*
+static/upload
+static/work
+static/attach
