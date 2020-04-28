@@ -265,16 +265,30 @@ def submit(request, classroom_id, typing, lesson, index, user_id):
             work3 = Science3Work(student_id=user_id, index=index)
         work4 = Science4Work.objects.filter(student_id=user_id, index=index).order_by("-id")
         contents4 = Science4Debug.objects.filter(work3_id__in=work3_ids).order_by("-id")
+
+        # 理論上每項作業每個學生應該都只有一筆紀錄
+        # 但不曉得為何，學生有時會有多筆紀錄
+        # 改為只取第一筆
         try:
-            expr = Science2Json.objects.get(student_id=user_id, index=index, model_type=0)
-        except ObjectDoesNotExist:
-            expr = Science2Json(student_id=user_id, index=index, model_type=0)
-        except MultipleObjectsReturned:
             expr = Science2Json.objects.filter(student_id=user_id, index=index, model_type=0)[0]
+        except IndexError:
+            expr = Science2Json(student_id=user_id, index=index, model_type=0)
+ 
         try:
-            flow = Science2Json.objects.get(student_id=user_id, index=index, model_type=1)
-        except ObjectDoesNotExist:
+            flow = Science2Json.objects.filter(student_id=user_id, index=index, model_type=1)[0]
+        except IndexError:
             flow = Science2Json(student_id=user_id, index=index, model_type=1)
+
+        # try:
+        #     expr = Science2Json.objects.get(student_id=user_id, index=index, model_type=0)
+        # except ObjectDoesNotExist:
+        #     expr = Science2Json(student_id=user_id, index=index, model_type=0)
+        # except MultipleObjectsReturned:
+        #     expr = Science2Json.objects.filter(student_id=user_id, index=index, model_type=0)[0]
+        # try:
+        #     flow = Science2Json.objects.get(student_id=user_id, index=index, model_type=1)
+        # except ObjectDoesNotExist:
+        #     flow = Science2Json(student_id=user_id, index=index, model_type=1)
         questions = Science1Question.objects.filter(work_id=index)
         return render(request, 'student/submit.html', {'user_id': user_id, 'form':form, 'work_id':work_id, 'assignment': assignment, 'questions':questions, 'typing':typing, 'lesson': lesson, 'index':index, 'contents1':contents1, 'contents4':contents4, 'work3':work3, 'works3':works3, 'work3_ids':work3_ids, 'work4': work4, 'expr': expr, 'flow': flow, 'classroom_id':classroom_id})
     return redirect("/")
